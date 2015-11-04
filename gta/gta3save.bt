@@ -3,13 +3,28 @@
  *
  *             File: gta3save.bt
  *           Author: thehambone
- *          Purpose: Document GTA III save file structure
- *        Last edit: 04 November 2015
+ *          Purpose: Documenation of GTA III save file format
  * Contributions by: OrionSR, Seemann, spaceeinstein
+ *        Last edit: 04 November 2015
+ *        Revisions: -Fix checksum function for Xbox saves
+ *                   -Cosmetic changes
  *----------------------------------------------------------*/
 
-/*
- * --- Variable Naming ---
+/*************************************************************
+ * Info/Features
+ * -------------
+ * Save files from the following platforms are supported:
+ *     Android, iOS, PC, Xbox
+ *
+ * Platform is automatically detected based on the contents of
+ * the file.
+ *
+ * File checksum is automatically updated when it is in view.
+ ************************************************************/
+
+/*************************************************************
+ * Variable Naming
+ * ---------------
  * (prefixes)
  *  a = array
  *  b = byte or boolean
@@ -21,7 +36,7 @@
  *  p = pointer
  * sz = zero-terminated string
  * st = struct
- */
+ ************************************************************/
 
 // ---------- COMMON TYPE DECLARATIONS ----------
 enum <BYTE> BOOL
@@ -346,9 +361,9 @@ struct
                     } stTheScriptsData;
                 } stTheScripts <name="TheScripts">;
             } block <name="SimpleVars">;
-            if (isPS2) {
-                BYTE    _unknown[(size + 4) - FTell()];
-            }
+            //if (isPS2) {
+            //    BYTE    _unknown[(size + 4) - FTell()];
+            //}
             
             break;
         
@@ -633,8 +648,8 @@ struct
                         DWORD   nStaticObjectIndex <comment="index in static objects pool?">;
                         enum <DWORD> PHONESTATUS
                         {
-                            IDLE = 3,
-                            RINGING = 9
+                            PHONE_IDLE = 3,
+                            PHONE_RINGING = 9
                         } ePhoneStatus;
                         BYTE    _unknown;
                         align(3);
@@ -1032,19 +1047,30 @@ struct
     }
 } stBlock[blockCount] <optimize=false, open=true>;
 
-DWORD checksum<read=checksum32>;
+DWORD checksum <read=checksum>;
 if (isXbox) {
     DWORD _unknown[5];
 }
 
-string checksum32(int oldSum)
+// ---------- FUNCTIONS ----------
+string checksum(int oldSum)
 {
-    uint32 newSum = Checksum(CHECKSUM_BYTE, 0, FileSize() - 4);
-    string newSumString;
-    if (newSum != oldSum) {
-        WriteUInt(FileSize() - 4, newSum);
+    local int checksumOffset = 0;
+    local uint32 newSum;
+    local string newSumString;
+
+    if (isXbox) {
+        checksumOffset = FileSize() - 24;
+    } else {
+        checksumOffset = FileSize() - 4;
     }
-    SPrintf(newSumString, "%d", newSum);
+
+    newSum = Checksum(CHECKSUM_BYTE, 0, checksumOffset);
+    if (newSum != oldSum) {
+        WriteUInt(checksumOffset, newSum);
+    }
+
+    SPrintf(newSumString, "%d", (uint32) newSum);
     return newSumString;
 }
 
