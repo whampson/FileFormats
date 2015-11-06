@@ -6,12 +6,7 @@
  *          Purpose: Documenation of GTA III save file format
  * Contributions by: OrionSR, Seemann, spaceeinstein
  *        Last edit: 05 November 2015
- * Latest revisions: -Updated crane info
- *                   -Updated some variable names
- *                   -Added opcodes in Gangs block
- *                   -Bomb and radio enums added in Garage
-                      block
- *                   -Cosmetic changes
+ * Latest revisions: -Updated blip sprite enum
  *----------------------------------------------------------*/
 
 /*************************************************************
@@ -765,12 +760,12 @@ struct
                         FLOAT   _unknown;
                         WORD    nScale <comment="opcode 0168">;
                         WORD    nDisplay <comment="opcode 018B">;
-                        enum <WORD> BLIPSPRITE
+                        enum <WORD>
                         {
                             RADAR_DEFAULT, RADAR_ASUKA, RADAR_BOMB, RADAR_CAT, RADAR_CENTRE,
                             RADAR_COPCAR, RADAR_DON, RADAR_EIGHT, RADAR_EL, RADAR_ICE, RADAR_JOEY,
                             RADAR_KENJI, RADAR_LIZ, RADAR_LUIGI, RADAR_NORTH, RADAR_RAY, RADAR,SAL,
-                            RADAR_SPRAY, RADAR_TONY, RADAR_WEAPON
+                            RADAR_SAVE, RADAR_SPRAY, RADAR_TONY, RADAR_WEAPON
                         } eBlipSprite;
                         align(2);
                     } aRadarBlip[32] <optimize=false, comment="constant 32">;
