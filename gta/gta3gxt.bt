@@ -1,0 +1,48 @@
+/*------------------------------------------------------------
+ *--- 010 Editor v6.0.2 Binary Template ----------------------
+ *
+ *             File: gta3gxt.bt
+ *           Author: thehambone
+ *          Purpose: Documentation GTA III GXT file structure
+ *        Last edit: 05 November 2015
+ * Latest revisions:
+ *-----------------------------------------------------------*/
+
+local int numEntries;
+struct
+{
+    struct
+    {
+        char    sig[4];
+        int     size;
+
+        numEntries = size / 12;
+        struct
+        {
+            int     pValue<format=hex, comment="Offset in TDAT">;
+            char    szKey[8];
+            getValue(size, pValue); // Retrieve value at pointer for convenience
+        } aKeyPair[numEntries]<optimize=false>;
+    } stTKEY;
+
+    struct
+    {
+        char    sig[4];
+        int     size;
+
+        struct
+        {
+            wchar_t     szValue[];
+        } aValue[numEntries]<optimize=false>;
+    } stTDAT;
+} gta3GXTFile <open=true>;
+
+wchar_t[] getValue(int sizeOFKeys, int pointer)
+{
+    local int pReturn = FTell();
+    FSeek(sizeOFKeys + 16);
+    FSkip(pointer);
+    wchar_t szValue[];
+    FSeek(pReturn);
+    return szValue;
+}
