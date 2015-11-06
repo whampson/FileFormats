@@ -5,8 +5,12 @@
  *           Author: thehambone
  *          Purpose: Documenation of GTA III save file format
  * Contributions by: OrionSR, Seemann, spaceeinstein
- *        Last edit: 04 November 2015
- *        Revisions: -Fix checksum function for Xbox saves
+ *        Last edit: 05 November 2015
+ * Latest revisions: -Updated crane info
+ *                   -Updated some variable names
+ *                   -Added opcodes in Gangs block
+ *                   -Bomb and radio enums added in Garage
+                      block
  *                   -Cosmetic changes
  *----------------------------------------------------------*/
 
@@ -27,31 +31,31 @@
  * ---------------
  * (prefixes)
  *  a = array
- *  b = byte or boolean
- *  n = number
+ *  b = boolean (true or false)
  *  e = enumerated type
  *  f = float
- *  v = vector
- *  _ = unknown data or unclear functionality
+ *  n = number
  *  p = pointer
- * sz = zero-terminated string
  * st = struct
+ * sz = zero-terminated string
+ *  v = vector
+ *  _ = unknown data; unclear functionality; unconfirmed
  ************************************************************/
 
-// ---------- COMMON TYPE DECLARATIONS ----------
+// ---------- TYPE DECLARATIONS ----------
 enum <BYTE> BOOL
 {
-    NO, YES
+    TRUE_, FALSE_
 };
 
 enum <WORD> BOOL16
 {
-    NO_, YES_
+    TRUE__, FALSE__
 };
 
 enum <DWORD> BOOL32
 {
-    NO__, YES__
+    TRUE___, FALSE___
 };
 
 enum <DWORD> LEVEL
@@ -69,7 +73,7 @@ enum <INT32> OBJECTTYPE
     PATH = 1, STATIC, DYNAMIC_LOADED, DYNAMIC_UNLOADED
 };
 
-enum <INT16> VEHICLE_
+enum <INT16> VEHICLE16
 {
     LANDSTAL_ = 90, IDAHO_, STINGER_, LINERUN_, PEREN_, SENTINEL_, PATRIOT_, FIRETRUK_,
     TRASH_, STRETCH_, MANANA_, INFERNUS_, BLISTA_, PONY_, MULE_, CHEETAH_, AMBULAN_, FBICAR_,
@@ -80,7 +84,7 @@ enum <INT16> VEHICLE_
     FLATBED_, YANKEE_, ESCAPE_, BORGNINE_, TOYZ_, GHOST_
 };
 
-enum <INT32> VEHICLE__
+enum <INT32> VEHICLE32
 {
     LANDSTAL__ = 90, IDAHO__, STINGER__, LINERUN__, PEREN__, SENTINEL__, PATRIOT__,
     FIRETRUK__, TRASH__, STRETCH__, MANANA__, INFERNUS__, BLISTA__, PONY__, MULE__,
@@ -148,13 +152,13 @@ typedef struct CPed
     RwV3D   vPlayerPosition;
     DWORD   _unknown <comment="related to player coords; rot?">;
     if (isAndroid || isIOS) {
-        BYTE    _bUnknown1[128];
+        BYTE    _unknown1[128];
     } else {
-        BYTE    _bUnknown1[124];
+        BYTE    _unknown1[124];
     }
     FLOAT   fWeight;
     FLOAT   _fUnknown1[4];
-    BYTE    _bUnknown2[64];
+    BYTE    _unknown2[64];
     FLOAT   _fUnknown2[3];
     DWORD   _unknown;
     DWORD   _unknown;
@@ -165,10 +169,10 @@ typedef struct CPed
         BYTE    _bUnknown3[164];
     }
     DWORD   pPlayerCPed;
-    BYTE    _bUnknown4[204];
+    BYTE    _unknown4[204];
     float   fPlayerHealth;
     float   fPlayerArmor;
-    BYTE    _bUnknown5[148];
+    BYTE    _unknown5[148];
     struct
     {
         struct
@@ -178,13 +182,13 @@ typedef struct CPed
             DWORD   nClipAmmo;
             DWORD   nWeaponAmmo;
             DWORD   nLastShotTime;
-            BYTE    _bWeaponCameraMode;
+            BYTE    nWeaponCameraMode;
             align(3);
         } aWeaponSlot[13] <optimize=false>;
     } stPlayerWeapons;
-    BYTE    _bUnknown6[12];
+    BYTE    _unknown6[12];
     RwV3D   _vUnknown;
-    BYTE    _bUnknown7[72];
+    BYTE    _unknown7[72];
     DWORD   pNearestCPeds[10];
     BYTE    nLoadedCPeds;
     BYTE    _unknown8[43];
@@ -192,14 +196,15 @@ typedef struct CPed
     FLOAT   fPlayerMaxStamina;
     FLOAT   fSprintDistance;
     if (isAndroid) {
-        BYTE    _bUnknown9[192];
+        BYTE    _unknown9[192];
     } else if (isIOS) {
-        BYTE    _bUnknown9[188];
+        BYTE    _uUnknown9[188];
     } else {
-        BYTE    _bUnknown9[156];
+        BYTE    _unknown9[156];
     }
 };
 
+// ---------- DETERMINE PLATFORM ----------
 local int isAndroid = 0;
 local int isIOS = 0;
 local int isPC = 0;
@@ -209,6 +214,9 @@ local int isXbox = 0;
 if (!determinePlatform()) {
     Printf("Unable to determine platform!\n");
     return;
+} else if (isPS2) {
+    Printf("PS2 is not yet supported.\n");
+    return;
 } else {
     Printf("Is Android = %d\n", isAndroid);
     Printf("Is iOS     = %d\n", isIOS);
@@ -217,10 +225,10 @@ if (!determinePlatform()) {
     Printf("Is Xbox    = %d\n", isXbox);
 }
 
+// ---------- SAVE FILE STRUCTURE ----------
 local int blockCount = countBlocks();
 local int n = 0;
 
-// ---------- SAVE FILE STRUCTURE ----------
 struct
 {
     DWORD   size;
@@ -278,7 +286,7 @@ struct
                 WEATHERTYPE nForcedWeatherType;
                 align(2);
                 FLOAT   _fWeatherInterpolationValue;
-                CHAR    _szCompileTime[24] <comment="unused">;
+                CHAR    szCompileTime[24] <comment="unused">;
                 DWORD  _nWeatherTypeInList;
                 if (isPS2) {
                     DWORD   _unknown1[15];
@@ -334,7 +342,7 @@ struct
                             align(2);
                         } stSCMState;
                         DWORD   nNumberOfRunningScripts;
-                        struct /* CRunnningScript class dump? */
+                        struct
                         {
                             DWORD   pNextScript;
                             DWORD   pPreviousScript;
@@ -379,7 +387,7 @@ struct
                         DWORD   _unknown;
                         WORD    _unknown;
                         DWORD   _unknown <comment="ped_ref">;
-                        CPed    stCPedDump;
+                        CPed    stCPedObject;
                         DWORD   nMaxWantedLevel;
                         DWORD   nMaxChaosLevel;
                         CHAR    szModelName[24]<comment="special actor DFF name only">;
@@ -398,49 +406,58 @@ struct
                     DWORD   nNumberOfDefinedGarages;
                     BOOL32  bBombsAreFree <comment="opcode 021D">;
                     BOOL32  bRespraysAreFree <comment="opcode 0335">;
-                    DWORD   _nCarsCollected;
+                    DWORD   nCarsCollected <comment="unused?">;
                     DWORD   nBankVansCollected;
-                    DWORD   _nPoliceCarsCollected;
+                    DWORD   nPoliceCarsCollected <comment="unused?">;
                     DWORD   nCollectCars1Status <format=binary>;
                     DWORD   nCollectCars2Status <format=binary>;
-                    DWORD   _nCollectCars3Status <format=binary>;
+                    DWORD   nCollectCars3Status <format=binary, comment="unused">;
                     DWORD   nTimeLastHelpMessageShown <comment="time 'GA_21' last displayed">;
                     struct
                     {
                         struct
                         {
-                            VEHICLE__ eModelID;
+                            VEHICLE32 eModelID;
                             RwV3D   vPosition;
                             RwV3D   vRotation <comment="how does this work? euler angles?">;
                             DWORD   nImmunities <format=binary>;
-                            BYTE    bPrimaryColorID;
-                            BYTE    bSecondaryColorID;
-                            BYTE    bRadioStationID;
-                            BYTE    bModelVariationA;
-                            BYTE    bModelVariationB;
-                            BYTE    bBombTypeID;
+                            BYTE    nPrimaryColorID;
+                            BYTE    nSecondaryColorID;
+                            enum <BYTE>
+                            {
+                                HEAD_RADIO, DOUBLE_CLEF_FM, JAH_RADIO, RISE_FM, LIPS_106,
+                                GAME_FM, MSX_FM, FLASHBACK_95_6, CHATTERBOX_109, USER_TRACK_PLAYER,
+                                POLICE_RADIO, RADIO_OFF
+                            } eRadioStation;
+                            BYTE    nModelVariationA;
+                            BYTE    nModelVariationB;
+                            enum <BYTE>
+                            {
+                                NO_BOMB, TIMER_BOMB, IGNITION_BOMB, REMOTE_BOMB,
+                                TIMER_BOMB_ARMED, IGNITION_BOMB_ARMED
+                            } eBomb;
                             align(2);
                         } aStoredCar[3] <optimize=false, comment="portland, staunton, shoreside">;
                     } aSaveCarGarageSlot[6] <optimize=false, comment="1 per island">;
                     struct
                     {
                         GARAGE  eType;
-                        BYTE    _bUnknown;
-                        BYTE    _bUnknown;
-                        BYTE    _bUnknown;
-                        BYTE    _bUnknown;
-                        BYTE    _bUnknown;
+                        BYTE    _unknown;
+                        BYTE    _unknown;
+                        BYTE    _unknown;
+                        BYTE    _unknown;
+                        BYTE    _unknown;
                         align(2);
                         DWORD   _unknown;
                         DWORD   _pUnknown <comment="pointer">;
                         DWORD   _pUnknown <comment="pointer">;
-                        BYTE    _bUnknown;
-                        BYTE    _bUnknown;
-                        BYTE    _bUnknown;
-                        BYTE    _bUnknown;
-                        BYTE    _bUnknown;
-                        BYTE    _bUnknown;
-                        BYTE    _bUnknown;
+                        BYTE    _unknown;
+                        BYTE    _unknown;
+                        BYTE    _unknown;
+                        BYTE    _unknown;
+                        BYTE    _unknown;
+                        BYTE    _unknown;
+                        BYTE    _unknown;
                         align(1);
                         FLOAT   fX1;
                         FLOAT   fX2;
@@ -457,7 +474,7 @@ struct
                         FLOAT   _fUnknown;
                         FLOAT   _fUnknown;
                         DWORD   _unknown;
-                        BYTE    _bUnknown;
+                        BYTE    _unknown;
                         align(3);
                         DWORD   _unknown;
                         DWORD   _unknown;
@@ -469,12 +486,12 @@ struct
                         FLOAT   _fUnknown;
                         FLOAT   _fUnknown;
                         DWORD   _unknown;
-                        BYTE    _bUnknown;
-                        BYTE    _bUnknown;
-                        BYTE    _bUnknown;
-                        BYTE    _bUnknown;
-                        BYTE    _bUnknown;
-                        BYTE    _bUnknown;
+                        BYTE    _unknown;
+                        BYTE    _unknown;
+                        BYTE    _unknown;
+                        BYTE    _unknown;
+                        BYTE    _unknown;
+                        BYTE    _unknown;
                         align(2);
                     } aGarage[32] <optimize=false, comment="constant 32">;
                 } stGarageData;
@@ -492,7 +509,7 @@ struct
                     struct
                     {
                         DWORD   _unknown;
-                        VEHICLE_    eModelID;
+                        VEHICLE16    eModelID;
                         DWORD   _unknown;
                         struct  CVehicle
                         {
@@ -504,7 +521,7 @@ struct
                     struct
                     {
                         DWORD   _unknown;
-                        VEHICLE_    eModelID;
+                        VEHICLE16    eModelID;
                         DWORD   _unknown;
                         struct  CBoat
                         {
@@ -555,8 +572,8 @@ struct
                 DWORD size;
                 struct
                 {
-                    BYTE    aDisabledPedNodes[size / 2] <format=binary, optimize=false>;
-                    BYTE    aDisabledCarNodes[size / 2] <format=binary, optimize=false>;
+                    BYTE    aDisabledPedNodes[size / 2] <format=binary, optimize=false, comment="how does this work?">;
+                    BYTE    aDisabledCarNodes[size / 2] <format=binary, optimize=false, comment="how does this work?">;
                 } stPathFindData;
             } block <name="PathFind">;
             break;
@@ -571,13 +588,55 @@ struct
                     DWORD   nEVCraneCollectCarsStatus <format=binary, comment="opcode 03EC">;
                     struct
                     {
-                        DWORD   nStaticObjectIndex <comment="index in static objects pool?">;
-                        DWORD   _unknown;
-                        DWORD   _unknown;
-                        FLOAT   _fUnknown[25];
-                        DWORD   _unknown;
-                        DWORD   _unknown;
-                        BYTE    _bUnknown[7];
+                        DWORD   nStaticObjectIndex;
+                        DWORD   nCraneHookObjectIndex <comment="index in objects pool">;
+                        DWORD   nAudioEntityIndex;
+                        struct
+                        {
+                            FLOAT   fPickupZoneX1 <comment="param 3">;
+                            FLOAT   fPickupZoneX2 <comment="param 5">;
+                            FLOAT   fPickupZoneY1 <comment="param 6">;
+                            FLOAT   fPickupZoneY2 <comment="param 4">;
+                        } stPickupZone <comment="opcode 01EE">;
+                        struct
+                        {
+                            FLOAT   fDropOffPointX <comment="param 7">;
+                            FLOAT   fDropOffPointY <comment="param 8">;
+                            FLOAT   fDropOffPointZ <comment="param 9">;
+                            FLOAT   fDropOffHeading <comment="param 10; radians">;
+                        } stDropOffPoint <comment="opcode 01EE">;
+                        struct
+                        {
+                            FLOAT   fArmPickupRotation <comment="radians">;
+                            FLOAT   fArmDropOffRotation <comment="radians">;
+                            FLOAT   fArmPickupDistance <comment="distance from center of crane">;
+                            FLOAT   fArmDropOffDistance <comment="distance from center of crane">;
+                            FLOAT   fArmPickupHeight;
+                            FLOAT   fArmDropOffHeight;
+                            FLOAT   fArmCurrentRotation <comment="radians">;
+                            FLOAT   fArmCurrentDistance <comment="distance from center of crane">;
+                            FLOAT   fArmCurrentHeight;
+                        } stCraneArm;
+                        RwV3D   vHookInitialPosition;
+                        RwV3D   vHookCurrentPosition;
+                        FLOAT   _fUnknown;
+                        FLOAT   _fUnknown;
+                        DWORD   pVehicle <comment="pointer to vehicle pick up">;
+                        DWORD   nTime <comment="current game time + 10000; updates when crane has finished lifting car">;
+                        enum <BYTE>
+                        {
+                            IDLE, CRUSHER_MILITARY_CRANE_ACTIVE, INACTIVE
+                        } eCraneActivity;
+                        enum <BYTE>
+                        {
+                            MOTION_IDLE, MOVING_TO_PICKUP, MOVING_UPWARDS_FROM_PICKUP, MOVING_TO_DESTINATION,
+                            MOVING_DOWNWARDS_TO_DROPOFF, MOVING_UPWARDS_FROM_DROPOFF
+                        } eCraneStatus;
+                        BYTE    nNumberOfVehiclesCollected;
+                        BOOL    bIsCrusherCrane;
+                        BOOL    bIsMilitaryCrane;
+                        BYTE    _bUnknown;
+                        BOOL    bModelIsNotDocCraneCab <comment="model is not doc_crane_cab">;
                         align(1);
                     } aCrane[nNumberOfCranes] <optimize=false>;
 
@@ -593,7 +652,7 @@ struct
                 {
                     struct
                     {
-                        enum <BYTE> PICKUPTYPE
+                        enum <BYTE>
                         {
                             PICKUP_IN_SHOP = 1,
                             PICKUP_ON_STREET,
@@ -643,10 +702,10 @@ struct
                     struct
                     {
                         RwV3D   vPosition;
-                        DWORD   pszText[6] <comment="pointers to text assigned with opcodes for text">;
+                        DWORD   pText[6] <comment="pointers to text assigned with opcodes for text">;
                         DWORD   _unknown;
-                        DWORD   nStaticObjectIndex <comment="index in static objects pool?">;
-                        enum <DWORD> PHONESTATUS
+                        DWORD   nStaticObjectIndex <comment="index in static objects pool">;
+                        enum <DWORD>
                         {
                             PHONE_IDLE = 3,
                             PHONE_RINGING = 9
@@ -668,8 +727,8 @@ struct
                     DWORD   size;
                     struct
                     {
-                        RestartPoint    aWastedRestart[8];
-                        RestartPoint    aBustedRestart[8];
+                        RestartPoint    aWastedRestart[8] <comment="opcode 016C">;
+                        RestartPoint    aBustedRestart[8] <comment="opcode 016D">;
                         WORD    nNumberOfActiveWastedRestarts;
                         WORD    nNumberOfActiveBustedRestarts;
                         BOOL    bOverrideNextRestart <comment="opcodes 016E, 0255">;
@@ -697,9 +756,9 @@ struct
                         DWORD   nColor <comment="opcode 0165">;
                         DWORD   nType;
                         DWORD   nEntityHandle <comment="car/actor/object handle">;
-                        FLOAT   _fX;
-                        FLOAT   _fY;
-                        RwV3D   vPosition;
+                        FLOAT   fRadarPositionX;
+                        FLOAT   fRadarPositionY;
+                        RwV3D   vWorldPosition;
                         WORD    _nIndex;
                         BYTE    nBrightness <comment="opcode 0166">;
                         BOOL    bIsVisible;
@@ -743,7 +802,7 @@ struct
                         Zone    aMapZone[25] <comment="from map.zon">;
                         struct
                         {
-                            INT16 nZoneID;
+                            INT16   nZoneID;
                         } stAudioZone[36];
                         WORD    nNumberOfMapZones;
                         WORD    nNumberOfAudioZones;
@@ -762,11 +821,11 @@ struct
                     DWORD   size;
                     struct
                     {
-                        VEHICLE__   eVehicleModelID;
-                        BYTE    bPedModelOverrideIndex <comment="opcode 0410">;
+                        VEHICLE32   eVehicleModelID <comment="opcode 0236">;
+                        BYTE    nPedModelOverrideIndex <comment="opcode 0410">;
                         align(3);
-                        WEAPON  eWeaponID1;
-                        WEAPON  eWeaponID2;
+                        WEAPON  eWeaponID1 <comment="opcode 0237">;
+                        WEAPON  eWeaponID2 <comment="opcode 0237">;
                     } aGang[9] <optimize=false>;
                 } stGangs;
             } block <name="Gangs">;
@@ -787,21 +846,21 @@ struct
                         {
                             DWORD   nNumberOfCarGenerators;
                             DWORD   nActiveCarGeneratorsCount;
-                            BYTE    _bProcessCounter;
-                            BYTE    _bGenerateEvenIfPlayerIsCloseCounter;
+                            BYTE    _nProcessCounter;
+                            BYTE    _nGenerateEvenIfPlayerIsCloseCounter;
                             align(2);
                         } stMetaData;
                         DWORD   size <comment="constant 11560">;
                         struct
                         {
-                            VEHICLE__   eModelID;
+                            VEHICLE32   eModelID;
                             RwV3D   vPosition;
                             FLOAT   fAngle;
                             INT16   nPrimaryColorID <comment="color ID from carcols.dat">;
                             INT16   nSecondaryColorID <comment="color ID from carcols.dat">;
                             BOOL    bForceSpawn;
-                            BYTE    bAlarm <comment="percent chance of vehilce spawning with alarm">;
-                            BYTE    bDoorLock <comment="percent chance of vehilce spawning with locked doors">;
+                            BYTE    nAlarm <comment="percent chance of vehilce spawning with alarm">;
+                            BYTE    nDoorLock <comment="percent chance of vehilce spawning with locked doors">;
                             align(1);
                             WORD    nMinDelay;
                             WORD    nMaxDelay;
@@ -915,7 +974,7 @@ struct
                     BOOL    bPlayerFastReload <comment="opcode 0331; doesn't appear to have any effect">;
                     BOOL    bPlayerGetOutOfJailFree <comment="opcode 0413">;
                     BOOL    bPlayerFreeHealthCare <comment="opcode 0414">;
-                    BYTE    _bUnknown[70];
+                    BYTE    _unknown[70];
                     align(215);
                 } stPlayerInfo;
             } block <name="PlayerInfo">;
@@ -1008,7 +1067,7 @@ struct
                 DWORD   size;
                 struct
                 {
-                    BYTE    _bUnknown[200];
+                    BYTE    _unknown[200];
                 } stStreaming;
             } block <name="Streaming">;
             break;
@@ -1091,16 +1150,13 @@ int determinePlatform()
     if (scrOffset == 0xB8           // Mobile
             && ReadInt(0x34) == UNKNOWN_CONSTANT) {
         isMobile = 1;
-    } else if (scrOffset == 0xC4    // PC
+    } else if (scrOffset == 0xC4    // PC or Xbox
             && ReadInt(0x44) == UNKNOWN_CONSTANT) {
         isPCOrXbox = 1;
     } else if (scrOffset == 0xB8    // PS2
             && ReadInt(0x04) == UNKNOWN_CONSTANT) {
         isPS2 = 1;
         foundPlatform = 1;
-    } else if (scrOffset == 0xC4    // Xbox
-            && ReadInt(0x44) == UNKNOWN_CONSTANT) {
-        isPCOrXbox = 1;
     }
 
     // Determine platform using size of block 1
