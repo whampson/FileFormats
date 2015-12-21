@@ -1,0 +1,73 @@
+/*------------------------------------------------------------
+ *--- 010 Editor v6.0.2 Binary Template ----------------------
+ *
+ *             File: gtaVCLCSgxt.bt
+ *           Author: thehambone
+ *          Purpose: Documentation of GTA VC/LCS GXT file
+ *                   structure
+ *        Last edit: 21 December 2015
+ *-----------------------------------------------------------*/
+typedef struct TKEY
+{
+    char    sig[4] <comment="TKEY">;
+    uint32  size <comment="size of TKEY section">;
+
+    local int numEntries = size / 12;
+
+    local int i;
+    for (i = 0; i < numEntries; i++) {
+        struct
+        {
+            uint32  pValue <comment="offset of string in TDAT section">;
+            char    szKey[8];
+
+            // Dereference value
+            local int mark = FTell();
+            FSkip((size - (i * 12) - 4) + pValue);
+            wchar_t szValue[];
+            FSeek(mark);
+        } keyValuePair <comment="key: entry name, value: pointer to string entry">;
+    }
+};
+
+typedef struct KeyTable
+{
+    TKEY    keys;
+};
+
+typedef struct NamedKeyTable
+{
+    char    szTableName[8];
+    TKEY    keys;
+};
+
+
+local int numEntries;
+struct
+{
+    struct
+    {
+        char    sig[4] <comment="TABL">;
+        int     size <comment="size of TABL section">;
+    
+        numEntries = size / 12;
+
+        local int i;
+        for (i = 0; i < numEntries; i++) {
+            struct {
+                char    szTableName[8];
+                DWORD   pTable <comment="offset of GXT table in file">;
+
+                // Dereference table
+                local int mark = FTell();
+                FSeek(pTable);
+                if (i == 0) {
+                    KeyTable table; // "MAIN" table is not named
+                } else {
+                    NamedKeyTable table;
+                }
+                FSeek(mark);
+            } keyValuePair <comment="key: table name, value: pointer to GXT table">;
+        };
+    } stTABL <name="GXT Tables">;
+} gtaVCLCSgxtFile <name="GTA VC/LCS GXT File", open=true>;
