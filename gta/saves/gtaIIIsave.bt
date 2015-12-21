@@ -1,12 +1,11 @@
 /*------------------------------------------------------------
  *--- 010 Editor v6.0.2 Binary Template ----------------------
  *
- *             File: gta3save.bt
+ *             File: gtaIIIsave.bt
  *           Author: thehambone
  *          Purpose: Documenation of GTA III save file format
  * Contributions by: OrionSR, Seemann, spaceeinstein
- *        Last edit: 05 November 2015
- * Latest revisions: -Updated blip sprite enum
+ *        Last edit: 21 December 2015
  *----------------------------------------------------------*/
 
 /*************************************************************
