@@ -1,11 +1,11 @@
 /*------------------------------------------------------------
  *--- 010 Editor v6.0.2 Binary Template ----------------------
  *
- *             File: gtaVCLCSgxt.bt
+ *             File: gta_VC-LCS-VCS_gxt.bt
  *           Author: thehambone
- *          Purpose: Documentation of GTA VC/LCS GXT file
- *                   structure
- *        Last edit: 21 December 2015
+ *          Purpose: Documentation of GTA VC/LCS/VCS GXT file
+ *                   format
+ *        Last edit: 24 December 2015
  *-----------------------------------------------------------*/
 typedef struct TKEY
 {
