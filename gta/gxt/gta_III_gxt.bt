@@ -1,11 +1,11 @@
 /*------------------------------------------------------------
  *--- 010 Editor v6.0.2 Binary Template ----------------------
  *
- *             File: gtaIIIgxt.bt
+ *             File: gta_III_gxt.bt
  *           Author: thehambone
  *          Purpose: Documentation of GTA III GXT file
- *                   structure
- *        Last edit: 21 December 2015
+ *                   format
+ *        Last edit: 24 December 2015
  *-----------------------------------------------------------*/
 
 local int numEntries;
