@@ -70,4 +70,4 @@ struct
             } keyValuePair <comment="key: table name, value: pointer to GXT table">;
         };
     } stTABL <name="GXT Tables">;
-} gtaVCLCSgxtFile <name="GTA VC/LCS GXT File", open=true>;
+} gta_VC_LCS_VCS_gxt <name="GTA VC/LCS/VCS GXT File", open=true>-
