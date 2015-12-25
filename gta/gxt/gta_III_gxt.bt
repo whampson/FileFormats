@@ -34,4 +34,4 @@ struct
             } keyValuePair <comment="key: entry name, value: pointer to string entry">;
         }
     } stTKEY <name="GXT Keys">;
-} gtaIIIGXTFile <name="GTA III GXT File", open=true>;
+} gta_III_gxt <name="GTA III GXT File", open=true>;
