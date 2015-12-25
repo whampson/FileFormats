@@ -1,0 +1,38 @@
+/*------------------------------------------------------------
+ *--- 010 Editor v6.0.2 Binary Template ----------------------
+ *
+ *             File: gta2_gxt.bt
+ *           Author: thehambone
+ *          Purpose: Documentation of GTA2 GXT file format
+ *        Last edit: 25 December 2015
+ *-----------------------------------------------------------*/
+
+local int numEntries;
+struct
+{
+    char    langSig[4];
+    ushort  version <comment="always 100">;
+    struct
+    {
+        char    sig[4] <comment="TKEY">;
+        int     size <comment="size of TKEY section">;
+
+        numEntries = size / 12;
+        
+        local int i;
+        for (i = 0; i < numEntries; i++) {
+            struct
+            {
+                int     pValue<comment="offset of string in TDAT section">;
+                char    szKey[8];
+
+                // Dereference value
+                local int mark = FTell();
+                FSeek(size + 22);
+                FSkip(pValue);
+                wchar_t szValue[];
+                FSeek(mark);
+            } keyValuePair <comment="key: entry name, value: pointer to string entry">;
+        }
+    } stTKEY <name="GXT Keys">;
+} gta_III_gxt <name="GTA III GXT File", open=true>;
