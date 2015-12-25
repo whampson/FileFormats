@@ -1,0 +1,86 @@
+/*------------------------------------------------------------
+ *--- 010 Editor v6.0.2 Binary Template ----------------------
+ *
+ *             File: gta_SA-IV_gxt.bt
+ *           Author: thehambone
+ *          Purpose: Documentation of GTA SA/IV GXT file
+ *                   format
+ *        Last edit: 24 December 2015
+ *-----------------------------------------------------------*/
+local const int SA_VER = 0x00080004;
+local const int IV_VER = 0x00100004;
+
+typedef struct TKEY
+{
+    char    sig[4] <comment="TKEY">;
+    uint32  size <comment="size of TKEY section">;
+
+    local int numEntries = size / 8;
+
+    local int i;
+    for (i = 0; i < numEntries; i++) {
+        struct
+        {
+            uint32  pValue <comment="offset of string in TDAT section">;
+            uint32  crc;
+
+            // Dereference value
+            local int mark = FTell();
+            FSkip((size - (i * 8)) + pValue);
+            
+            if (getVersion() == SA_VER) {
+                char szValue[];
+            } else if (getVersion() == IV_VER) {
+                wchar_t szValue[];
+            }
+            FSeek(mark);
+        } keyValuePair <comment="key: entry name, value: pointer to string entry">;
+    }
+};
+
+typedef struct KeyTable
+{
+    TKEY    keys;
+};
+
+typedef struct NamedKeyTable
+{
+    char    szTableName[8];
+    TKEY    keys;
+};
+
+local int numEntries;
+struct
+{
+    struct
+    {
+        DWORD   version <comment="0x04000800 = SA, 0x04001000 = IV">;
+        char    sig[4] <comment="TABL">;
+        int     size <comment="size of TABL section">;
+
+        numEntries = size / 12;
+
+        local int i;
+        for (i = 0; i < numEntries; i++) {
+            struct {
+                char    szTableName[8];
+                DWORD   pTable <comment="offset of GXT table in file">;
+
+                // Dereference table
+                local int mark = FTell();
+                FSeek(pTable);
+                if (i == 0) {
+                    KeyTable table; // "MAIN" table is not named
+                } else {
+                    NamedKeyTable table;
+                }
+                FSeek(mark);
+            } keyValuePair <comment="key: table name, value: pointer to GXT table">;
+        };
+    } stTABL <name="GXT Tables">;
+} gta_SA_IV_gxt <name="GTA SA/IV GXT File", open=true>;
+
+int getVersion()
+{
+    return ReadInt(0);
+}
