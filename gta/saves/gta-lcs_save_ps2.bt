@@ -1,0 +1,528 @@
+/*------------------------------------------------------------
+ *--- 010 Editor v6.0.2 Binary Template ----------------------
+ *
+ *             File: gta-lcs_save_ps2.bt
+ *           Author: thehambone
+ *          Purpose: Documenation of GTA LCS save file format
+ *        Last edit: 30 December 2015
+ *            Notes: PlayStation 2
+ *----------------------------------------------------------*/
+
+typedef struct RwV3D
+{
+    float fX, fY, fZ;
+};
+
+local int blockCount = countBlocks();
+Printf("Block count: %d\n", blockCount);
+
+struct
+{
+    local int n = 0;
+    struct
+    {
+        char    blockSig[4];
+        uint32  blockSize;
+    
+        switch (n++) {
+            case 0: /* BLOCK 0: SIMPLEVARS */
+                struct
+                {
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown <comment="current island?">;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown <comment="length of 1 in-game minute?">;
+                    DWORD       unknown;
+                    BYTE        bGameHour <comment="current time in-game (hour)">;
+                    BYTE        bGameMinute <comment="current time in-game (minute)">;
+                    WORD        unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    RwV3D       unknown <comment="camera pos or player pos">;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                } block <name="SimpleVars">;
+                break;
+    
+            case 1: /* BLOCK 1: SCRIPT */
+                struct
+                {
+                    char    blockSig[4];
+                    uint32  blockSize;
+                    struct
+                    {
+                        uint32      nScriptVariableSpaceSize;
+                        DWORD       aScriptVariables[nScriptVariableSpaceSize / sizeof(DWORD)] <comment="global variables, vars appear to be offset by +1 (so, $5 -> arr[6])", optimize=false>;
+    
+                        uint32      blockSize;
+                        struct
+                        {
+                            DWORD       unknown <comment="onmission flag pointer?">;
+                            // the rest is unknown, possibly ContactInfo and BaseBrief
+                            align(blockSize - 4);
+                        } scmState <comment="not sure what to call this struct">;
+                        // the rest is unknown, possibly BuilndingSwap and InvisibilitySetting
+                        align(260);     // Size unconfirmed
+                    } scriptData;
+                    uint32      nRunningScripts;
+                    struct
+                    {
+                        DWORD   unknown[4] <optimize=false>;
+                        char    name[8];
+                        // the rest is unknown, (locals are in there somewhere, along with ip and other flags)
+                        align(516);
+                    } aRunningScript[nRunningScripts] <optimize=false>;
+                } block <name="Script">;
+                break;
+    
+            case 2: /* BLOCK 2: GARAGES */
+                struct
+                {
+                    struct
+                    {
+                        uint32      nGarageSlots <comment="18, but isn't the max 12? (4 at each garage)">;
+                        DWORD       unknown[10];
+                        struct
+                        {
+                            uint32      vehicleModelID;
+                            RwV3D       vPosition;
+                            float       rotation[3] <comment="euler angles I think">;
+                            DWORD       unknown;
+                            DWORD       unknown <format=binary, comment="immunities?">;
+                            BYTE        bColorIDPrimary;
+                            BYTE        bColorIDSecondary;
+                            BYTE        bUnknown <comment="radio station?">;
+                            BYTE        bUnknown;
+                            BYTE        bUnknown;
+                            BYTE        bUnknown;
+                            BYTE        bUnknown;
+                            BYTE        bUnknown;
+                        } aSaveGarageSlot[nGarageSlots] <optimize=false>;
+                    } stSaveGarageSlots;
+                    // the rest is presaumably info about each script-controlled garages
+                } block <name="Garages">;
+                if (blockSize > sizeof(block)) {
+                    align(blockSize - sizeof(block));
+                }
+                break;
+    
+            case 3:  /* BLOCK 3: PLAYER */
+                struct
+                {
+                    int32       nMoney1;
+                    DWORD       unknown;
+                    BYTE        bUnknown;
+                    BYTE        bUnknown;
+                    BYTE        bUnknown;
+                    BYTE        bUnknown;
+                    byte        bUnknown;
+                    WORD        unknown;
+                    int32       nMoney2;
+                    DWORD       unknown <comment="hidden packages found?">;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    UBYTE       bUnknown <comment="health or armor?">;
+                    UBYTE       bUnknown <comment="health or armor?">;
+                    BYTE        bUnknown <comment="current outfit">;
+                    BYTE        bUnknown;
+                    BYTE        bUnknown;
+                    BYTE        bUnknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    BYTE        bUnknown;
+                    BYTE        bUnknown;
+                    BYTE        bUnknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    RwV3D       unknown <comment="player pos?">;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       _unknown[56];
+                } block <name="Player">;
+                break;
+    
+            case 4:  /* BLOCK 4: STATS */
+                struct
+                {
+                    DWORD       nPeopleYouveWasted;
+                    DWORD       nPeopleWastedByOthers;
+                    DWORD       nCarsExploded;
+                    DWORD       nBoatsDestroyed;
+                    DWORD       nTiresPoppedWithGunfire;
+                    DWORD       nBulletsFired;
+                    DWORD       unknown <comment="cars crushed?">;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown <comment="COP wasted?">;
+                    DWORD       unknown <comment="CIVMALE wasted?">;
+                    DWORD       unknown <comment="CIVFEMALE wasted?">;
+                    DWORD       nGANG1Wasted <comment="MAFIA LEONE">;
+                    DWORD       nGANG2Wasted <comment="TRIAD">;
+                    DWORD       nGANG3Wasted <comment="DIABLO">;
+                    DWORD       nGANG4Wasted <comment="YAKUZA">;
+                    DWORD       nGANG5Wasted <comment="YARDIE">;
+                    DWORD       nGANG6Wasted <comment="COLUMBIAN">;
+                    DWORD       nGANG7Wasted <comment="HOOD">;
+                    DWORD       nGANG8Wasted <comment="MAFIA FORELLI">;
+                    DWORD       nGANG9Wasted <comment="MAFIA SINDACCOS">;
+                    DWORD       unknown <comment="EMERGENCY wasted?">;
+                    DWORD       unknown <comment="FIREMAN wasted?">;
+                    DWORD       nCriminalsWasted;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       nHelicoptersDestroyed;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    DWORD       nKgsOfExplosivesUsed;
+                    DWORD       nBulletsThatHit;
+                    DWORD       unknown;
+                    DWORD       nNumberOfHeadshots;
+                    DWORD       nTotalNumberOfWantedStarsAttained;
+                    DWORD       nTotalNumberOfWantedStarsEvaded;
+                    DWORD       unknown <comment="times busted or hospital visits">;
+                    DWORD       unknown <comment="times busted or hospital visits">;
+                    DWORD       nDaysPassedInGame;
+                    DWORD       nNumberOfSaves;
+                    DWORD       nSprayings;
+                    FLOAT       fMaxInsaneJumpDist;
+                    FLOAT       fMaxInsaneJumpHeight;
+                    DWORD       nMaxInsaneJumpFlips;
+                    DWORD       nMaxInsaneJumpRotation;
+                    enum <DWORD>
+                    {
+                        NoInsaneStuntsCompleted,
+                        InsaneStunt,
+                        PerfectInsaneStunt,
+                        DoubleInsaneStunt,
+                        PerfectDoubleInsaneStunt,
+                        TripleInsaneStunt,
+                        PerfectTripleInsaneStunt,
+                        QuadrupleInsaneStunt,
+                        PerfectQuadrupleInsaneStunt,
+                    } eBestInsaneStuntSoFar;
+                    DWORD       unknown <comment="unique jumps completed or total unique jumps">;
+                    DWORD       unknown <comment="unique jumps completed or total unique jumps">;
+                    DWORD       nMissionAttempts;
+                    DWORD       nPassengersDroppedOff;
+                    DWORD       nCashMadeInTaxi;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    DWORD       unknown;
+                    DWORD       nPeopleSavedInAnAmbulance;
+                    DWORD       nCriminalsKilledOnVigilanteMission;
+                    DWORD       nTotalFiresExtinguished;
+                    DWORD       unknown <comment="highest paramedic/vigilante/firefighter level">;
+                    DWORD       unknown <comment="highest paramedic/vigilante/firefighter level">;
+                    DWORD       unknown <comment="highest paramedic/vigilante/firefighter level">;
+                    DWORD       nPhotosTaken;
+                    DWORD       unknown;
+                    DWORD       nMostTimeLeftInKarmageddon <comment="seconds">;
+                    DWORD       nMostKillsInRCTriadTakeDown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    FLOAT       fUnknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    DWORD       nLongestWheelieTime;
+                    DWORD       nLongestStoppieTime;
+                    DWORD       nLongest2WheelsTime;
+                    FLOAT       fLongestWheelieDistance;
+                    FLOAT       fLongestStoppieDistance;
+                    FLOAT       fLongest2WheelsDistance;
+                    FLOAT       fLongestFacePlantDistance;
+                    FLOAT       fUnknown;
+                    DWORD       nPropertyDestroyed;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    BYTE        bUnknown;
+                    FLOAT       fUnknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    char        szLastMissionPassed[8] <comment="GXT key">;
+                    DWORD       unknown;
+                    DWORD       nCarsSold;
+                    DWORD       nCashMadeSellingCars;
+                    DWORD       nBikesSold;
+                    DWORD       nCashMadeSellingBikes;
+                    DWORD       unknown <comment="cars found for Love Media (or total)">;
+                    DWORD       unknown <comment="cars found for Love Media (or total)">;
+                    DWORD       nHighestSlashTVLevel;
+                    DWORD       nTotalCashMadeOnSlashTV;
+                    DWORD       nOpponentsKilledOnSlashTV;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       nCashMadeCollectingTrash;
+                    DWORD       nHitmenWasted;
+                    DWORD       nTotalAvengingAngelJusticeDishedOut;
+                    DWORD       nNumberOfAvengingAngelMissionsPassed;
+                    struct
+                    {
+                        DWORD   nPortland;
+                        DWORD   nStauntonIsland;
+                        DWORD   nShoresideVale;
+                    } highestAvengingAngelLevel;
+                    DWORD       nMostTimeLeftOnWongSideOfTheTrack <comment="seconds">;
+                    DWORD       unknown;
+                    DWORD       unknown <comment="most air achieved?">;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown <comment="outfit changes?">;
+                    struct
+                    {
+                        struct
+                        {
+                            DWORD   nThrashinRC;
+                            DWORD   nRaginRC;
+                            DWORD   nChasinRC;
+                        } fastestLap <comment="seconds">;
+                        struct
+                        {
+                            DWORD   nThrashinRC;
+                            DWORD   nRaginRC;
+                            DWORD   nChasinRC;
+                        } bestPosition;
+                    } rcRaces;
+                    struct
+                    {
+                        struct
+                        {
+                            DWORD   nLowRiderRumble;
+                            DWORD   nDeimosDash;
+                            DWORD   nWiCheetahRun;
+                            DWORD   nRedLightRacing;
+                            DWORD   nTorringtonTT;
+                            DWORD   nGangstaGP;
+                        } bestPosition;
+                        struct
+                        {
+                            DWORD   nLowRiderRumble;
+                            DWORD   nDeimosDash;
+                            DWORD   nWiCheetahRun;
+                            DWORD   nRedLightRacing;
+                            DWORD   nTorringtonTT;
+                            DWORD   nGangstaGP;
+                        } fastestLap <comment="seconds">;
+                        struct
+                        {
+                            DWORD   nLowRiderRumble;
+                            DWORD   nDeimosDash;
+                            DWORD   nWiCheetahRun;
+                            DWORD   nRedLightRacing;
+                            DWORD   nTorringtonTT;
+                            DWORD   nGangstaGP;
+                        } fastestTime <comment="seconds">;
+                    } races;
+                    struct
+                    {
+                        struct
+                        {
+                            DWORD   nCourse1;
+                            DWORD   nCourse2;
+                            DWORD   nCourse3;
+                            DWORD   nCourse4;
+                            DWORD   nCourse5;
+                            DWORD   nCourse6;
+                            DWORD   nCourse7;
+                            DWORD   nCourse8;
+                            DWORD   nCourse9;
+                            DWORD   nCourse10;
+                        } fastestLap <comment="seconds">;
+                        struct
+                        {
+                            DWORD   nCourse1;
+                            DWORD   nCourse2;
+                            DWORD   nCourse3;
+                            DWORD   nCourse4;
+                            DWORD   nCourse5;
+                            DWORD   nCourse6;
+                            DWORD   nCourse7;
+                            DWORD   nCourse8;
+                            DWORD   nCourse9;
+                            DWORD   nCourse10;
+                        } fastestTime <comment="seconds">;
+                    } bumpAndGrinds;
+                    DWORD       _unknown[10] <comment="probably padding">;
+                } block <name="Stats">;
+                break;
+        }
+    } blocks[blockCount] <optimize=false, open=true>;
+    struct
+    {
+        align(FileSize() - FTell() - 4);
+    } padding;
+    DWORD   checksum<read=checksum>;
+} lcsSave <name="GTA LCS PS2 Save", open=true>;
+ 
+void align(int n)
+{
+    FSkip(n);
+}       
+
+int countBlocks()
+{
+    local int mark = FTell();
+    local int blockCount = 0;
+    local int blockSize;
+    
+    FSeek(4);
+    while (FTell() < FileSize()) {
+        blockSize = ReadInt();
+        FSkip(blockSize + 8);
+        blockCount++;
+    }
+    FSeek(mark);
+
+    return blockCount;
+}
+
+string checksum(int oldSum)
+{
+    local int checksumOffset = 0;
+    local uint32 newSum;
+    local string newSumString;
+
+    checksumOffset = FileSize() - 4;
+
+    newSum = Checksum(CHECKSUM_BYTE, 0, checksumOffset);
+    if (newSum != oldSum) {
+        WriteUInt(checksumOffset, newSum);
+    }
+
+    SPrintf(newSumString, "%d", (uint32) newSum);
+    return newSumString;
+}
