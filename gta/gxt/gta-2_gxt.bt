@@ -1,10 +1,10 @@
 /*------------------------------------------------------------
  *--- 010 Editor v6.0.2 Binary Template ----------------------
  *
- *             File: gta2_gxt.bt
+ *             File: gta-2_gxt.bt
  *           Author: thehambone
  *          Purpose: Documentation of GTA2 GXT file format
- *        Last edit: 25 December 2015
+ *        Last edit: 30 December 2015
  *-----------------------------------------------------------*/
 
 local int numEntries;
