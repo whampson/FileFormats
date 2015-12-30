@@ -1,11 +1,11 @@
 /*------------------------------------------------------------
  *--- 010 Editor v6.0.2 Binary Template ----------------------
  *
- *             File: gta_SA-IV_gxt.bt
+ *             File: gta-SA-IV_gxt.bt
  *           Author: thehambone
  *          Purpose: Documentation of GTA SA/IV GXT file
  *                   format
- *        Last edit: 24 December 2015
+ *        Last edit: 30 December 2015
  *-----------------------------------------------------------*/
 local const int SA_VER = 0x00080004;
 local const int IV_VER = 0x00100004;
