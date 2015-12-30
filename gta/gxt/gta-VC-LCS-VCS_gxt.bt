@@ -1,7 +1,7 @@
 /*------------------------------------------------------------
  *--- 010 Editor v6.0.2 Binary Template ----------------------
  *
- *             File: gta_VC-LCS-VCS_gxt.bt
+ *             File: gta-VC-LCS-VCS_gxt.bt
  *           Author: thehambone
  *          Purpose: Documentation of GTA VC/LCS/VCS GXT file
  *                   format
@@ -70,4 +70,4 @@ struct
             } keyValuePair <comment="key: table name, value: pointer to GXT table">;
         };
     } stTABL <name="GXT Tables">;
-} gta_VC_LCS_VCS_gxt <name="GTA VC/LCS/VCS GXT File", open=true>-
+} gta_VC_LCS_VCS_gxt <name="GTA VC/LCS/VCS GXT File", open=true>;
