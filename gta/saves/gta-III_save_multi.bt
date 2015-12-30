@@ -1,11 +1,11 @@
 /*------------------------------------------------------------
  *--- 010 Editor v6.0.2 Binary Template ----------------------
  *
- *             File: gtaIIIsave.bt
+ *             File: gta-III_save_multi.bt
  *           Author: thehambone
  *          Purpose: Documenation of GTA III save file format
  * Contributions by: OrionSR, Seemann, spaceeinstein
- *        Last edit: 21 December 2015
+ *        Last edit: 30 December 2015
  *----------------------------------------------------------*/
 
 /*************************************************************
