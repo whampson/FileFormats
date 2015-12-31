@@ -4,7 +4,7 @@
  *             File: gta-lcs_save_ios.bt
  *           Author: thehambone
  *          Purpose: Documenation of GTA LCS save file format
- *        Last edit: 25 December 2015
+ *        Last edit: 31 December 2015
  *            Notes: iOS
  *----------------------------------------------------------*/
 
@@ -107,7 +107,8 @@ struct
                     struct
                     {
                         uint32      nScriptVariableSpaceSize;
-                        DWORD       aScriptVariables[nScriptVariableSpaceSize / sizeof(DWORD)] <comment="global variables, vars appear to be offset by +1 (so, $5 -> arr[6])", optimize=false>;
+                        DWORD       aScriptVariables[nScriptVariableSpaceSize / sizeof(DWORD)] <optimize=false,
+                                            comment="player coords stored at offsets 8, 9, and 10; weapon ammo from 125 - 157; current weapon at 159; wanted level at 160; armor at 161; money at 162">;
     
                         uint32      blockSize;
                         struct
