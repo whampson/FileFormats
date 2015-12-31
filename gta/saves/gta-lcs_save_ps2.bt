@@ -4,7 +4,7 @@
  *             File: gta-lcs_save_ps2.bt
  *           Author: thehambone
  *          Purpose: Documenation of GTA LCS save file format
- *        Last edit: 30 December 2015
+ *        Last edit: 31 December 2015
  *            Notes: PlayStation 2
  *----------------------------------------------------------*/
 
@@ -13,8 +13,8 @@ typedef struct RwV3D
     float fX, fY, fZ;
 };
 
-local int blockCount = countBlocks();
-Printf("Block count: %d\n", blockCount);
+// local int blockCount = countBlocks();
+// Printf("Block count: %d\n", blockCount);
 
 struct
 {
@@ -33,7 +33,7 @@ struct
                     DWORD       unknown <comment="current island?">;
                     DWORD       unknown;
                     DWORD       unknown;
-                    DWORD       unknown <comment="length of 1 in-game minute?">;
+                    DWORD       nMinuteLength <comment="length of 1 in-game minute">;
                     DWORD       unknown;
                     BYTE        bGameHour <comment="current time in-game (hour)">;
                     BYTE        bGameMinute <comment="current time in-game (minute)">;
@@ -48,7 +48,7 @@ struct
                     DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
-                    RwV3D       unknown <comment="camera pos or player pos">;
+                    RwV3D       unknown <comment="camera pos?">;
                     DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
@@ -101,8 +101,9 @@ struct
                     struct
                     {
                         uint32      nScriptVariableSpaceSize;
-                        DWORD       aScriptVariables[nScriptVariableSpaceSize / sizeof(DWORD)] <comment="global variables, vars appear to be offset by +1 (so, $5 -> arr[6])", optimize=false>;
-    
+                        DWORD       aScriptVariables[nScriptVariableSpaceSize / sizeof(DWORD)] <optimize=false,
+                                            comment="player coords stored at offsets 7, 8, and 9; weapon ammo from 124 - 156; current weapon at 158; wanted level at 159; armor at 160; money at 161">;
+
                         uint32      blockSize;
                         struct
                         {
@@ -158,7 +159,7 @@ struct
             case 3:  /* BLOCK 3: PLAYER */
                 struct
                 {
-                    int32       nMoney1;
+                    int32       nMoney;
                     DWORD       unknown;
                     BYTE        bUnknown;
                     BYTE        bUnknown;
@@ -166,15 +167,15 @@ struct
                     BYTE        bUnknown;
                     byte        bUnknown;
                     WORD        unknown;
-                    int32       nMoney2;
-                    DWORD       unknown <comment="hidden packages found?">;
+                    int32       nMoneyOnScreen;
+                    DWORD       nHiddenPackagesFound <comment="changing this does nothing in-game">;
                     DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
-                    UBYTE       bUnknown <comment="health or armor?">;
-                    UBYTE       bUnknown <comment="health or armor?">;
-                    BYTE        bUnknown <comment="current outfit">;
+                    ubyte       bMaxHealth;
+                    ubyte       bMaxArmor;
+                    BYTE        bUnknown;
                     BYTE        bUnknown;
                     BYTE        bUnknown;
                     BYTE        bUnknown;
@@ -224,7 +225,7 @@ struct
                     DWORD       nBoatsDestroyed;
                     DWORD       nTiresPoppedWithGunfire;
                     DWORD       nBulletsFired;
-                    DWORD       unknown <comment="cars crushed?">;
+                    DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
@@ -252,12 +253,12 @@ struct
                     FLOAT       fUnknown;
                     DWORD       nKgsOfExplosivesUsed;
                     DWORD       nBulletsThatHit;
-                    DWORD       unknown;
+                    DWORD       nCarsCrushed;
                     DWORD       nNumberOfHeadshots;
                     DWORD       nTotalNumberOfWantedStarsAttained;
                     DWORD       nTotalNumberOfWantedStarsEvaded;
-                    DWORD       unknown <comment="times busted or hospital visits">;
-                    DWORD       unknown <comment="times busted or hospital visits">;
+                    DWORD       nTimesBusted;
+                    DWORD       nHospitalVisits;
                     DWORD       nDaysPassedInGame;
                     DWORD       nNumberOfSaves;
                     DWORD       nSprayings;
@@ -277,8 +278,8 @@ struct
                         QuadrupleInsaneStunt,
                         PerfectQuadrupleInsaneStunt,
                     } eBestInsaneStuntSoFar;
-                    DWORD       unknown <comment="unique jumps completed or total unique jumps">;
-                    DWORD       unknown <comment="unique jumps completed or total unique jumps">;
+                    DWORD       unknown <comment="unique jumps completed?">;
+                    DWORD       unknown <comment="total unique jumps?">;
                     DWORD       nMissionAttempts;
                     DWORD       nPassengersDroppedOff;
                     DWORD       nCashMadeInTaxi;
@@ -299,10 +300,10 @@ struct
                     DWORD       unknown <comment="highest paramedic/vigilante/firefighter level">;
                     DWORD       unknown <comment="highest paramedic/vigilante/firefighter level">;
                     DWORD       nPhotosTaken;
-                    DWORD       unknown;
+                    DWORD       nRampagesPassed;
                     DWORD       nMostTimeLeftInKarmageddon <comment="seconds">;
                     DWORD       nMostKillsInRCTriadTakeDown;
-                    DWORD       unknown;
+                    DWORD       unknown <comment="total rampages?">;
                     DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
@@ -480,7 +481,7 @@ struct
                 } block <name="Stats">;
                 break;
         }
-    } blocks[blockCount] <optimize=false, open=true>;
+    } blocks[5] <optimize=false, open=true>;
     struct
     {
         align(FileSize() - FTell() - 4);
@@ -493,7 +494,7 @@ void align(int n)
     FSkip(n);
 }       
 
-int countBlocks()
+/*int countBlocks()
 {
     local int mark = FTell();
     local int blockCount = 0;
@@ -508,7 +509,7 @@ int countBlocks()
     FSeek(mark);
 
     return blockCount;
-}
+}*/
 
 string checksum(int oldSum)
 {
