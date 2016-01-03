@@ -4,7 +4,7 @@
  *             File: gta-lcs_save_ios.bt
  *           Author: thehambone
  *          Purpose: Documenation of GTA LCS save file format
- *        Last edit: 31 December 2015
+ *        Last edit: 03 January 2016
  *            Notes: iOS
  *----------------------------------------------------------*/
 
@@ -18,9 +18,6 @@ typedef struct RwV3D
 {
     float fX, fY, fZ;
 };
-
-local int blockCount = countBlocks();
-Printf("Block count: %d\n", blockCount);
 
 struct
 {
@@ -107,8 +104,16 @@ struct
                     struct
                     {
                         uint32      nScriptVariableSpaceSize;
-                        DWORD       aScriptVariables[nScriptVariableSpaceSize / sizeof(DWORD)] <optimize=false,
-                                            comment="player coords stored at offsets 8, 9, and 10; weapon ammo from 125 - 157; current weapon at 159; wanted level at 160; armor at 161; money at 162">;
+
+                        /* player coords stored at offsets 8, 9, and 10
+                           weapon ammo from 125 - 157
+                           current weapon at 159
+                           wanted level at 160
+                           armor at 161
+                           money at 162
+                           current outfit at 534
+                        */
+                        DWORD       aScriptVariables[nScriptVariableSpaceSize / sizeof(DWORD)] <optimize=false>;
     
                         uint32      blockSize;
                         struct
@@ -137,19 +142,43 @@ struct
                     struct
                     {
                         uint32      nGarageSlots <comment="18, but isn't the max 12? (4 at each garage)">;
-                        DWORD       unknown[10];
+                        DWORD       unknown;
+                        DWORD       unknown;
+                        DWORD       unknown;
+                        DWORD       unknown;
+                        DWORD       unknown;
+                        DWORD       nLoveMediaCarsStatus <format=binary>;
+                        DWORD       unknown;
+                        DWORD       unknown;
+                        DWORD       unknown;
+                        DWORD       unknown;
                         struct
                         {
-                            uint32      vehicleModelID;
+                            uint32      nVehicleModelID;
                             RwV3D       vPosition;
                             float       rotation[3] <comment="euler angles I think">;
-                            DWORD       unknown;
-                            DWORD       unknown <format=binary, comment="immunities?">;
+                            DWORD       unknown <comment="constant 0x3F800000">;
+                            DWORD       nSpecialProperties <format=binary>;
                             BYTE        bColorIDPrimary;
                             BYTE        bColorIDSecondary;
-                            BYTE        bUnknown <comment="radio station?">;
-                            BYTE        bUnknown;
-                            BYTE        bUnknown;
+                            enum<BYTE>
+                            {
+                                HEAD_RADIO,
+                                DOUBLE_CLEF_FM,
+                                K_JAH,
+                                RISE_FM,
+                                LIPS_106,
+                                RADIO_DEL_MUNDO,
+                                MSX_98,
+                                FLASHBACK_FM,
+                                THE_LIBERTY_JAM,
+                                LCFR,
+                                _POLICE_RADIO,
+                                RADIO_OFF
+                            } eRadioStation;
+                            BYTE        bModelVariationA;
+                            BYTE        bModelVariationB;
+                            // align?
                             BYTE        bUnknown;
                             BYTE        bUnknown;
                             BYTE        bUnknown;
@@ -159,16 +188,22 @@ struct
                     DWORD       unknown;
                     // the rest is presaumably info about each script-controlled garages
                 } block <name="Garages">;
+                if (blockSize > sizeof(block)) {
+                    align(blockSize - sizeof(block));
+                }
                 break;
     
             case 3:  /* BLOCK 3: PLAYER */
                 struct
                 {
                     align(128);
-                    DWORD   unknown <comment="player health?">;
-                    DWORD   unknown <comment="player armor?">;
-                    DWORD   unknown <comment="player armor?">;
+                    DWORD   unknown <comment="max player health/armor?">;
+                    DWORD   unknown <comment="max player health/armor?">;
+                    DWORD   unknown <comment="max player health/armor?">;
                 } block <name="Player">;
+                if (blockSize > sizeof(block)) {
+                    align(blockSize - sizeof(block));
+                }
                 break;
     
             case 4:  /* BLOCK 4: STATS */
@@ -177,17 +212,8 @@ struct
                     align(blockSize);
                 } block <name="Stats", comment="undocumented">;
                 break;
-    
-            default:
-                struct
-                {
-                    align(blockSize);
-                } block <name="Unknown Block">;
         }
-        if (blockSize > sizeof(block)) {
-            align(blockSize - sizeof(block));
-        }
-    } blocks[blockCount] <optimize=false, open=true>;
+    } blocks[5] <optimize=false, open=true>;
     // No checksum? File ends with 3 extra bytes (zeros)
     BYTE    bUnknown <comment="align?">;
     BYTE    bUnknown <comment="align?">;
@@ -197,21 +223,4 @@ struct
 void align(int n)
 {
     FSkip(n);
-}       
-
-int countBlocks()
-{
-    local int mark = FTell();
-    local int blockCount = 0;
-    local int blockSize;
-    
-    FSeek(4);
-    while (FTell() < FileSize()) {
-        blockSize = ReadInt();
-        FSkip(blockSize + 8);
-        blockCount++;
-    }
-    FSeek(mark);
-
-    return blockCount;
 }
