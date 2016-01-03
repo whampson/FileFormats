@@ -4,7 +4,7 @@
  *             File: gta-lcs_save_ps2.bt
  *           Author: thehambone
  *          Purpose: Documenation of GTA LCS save file format
- *        Last edit: 31 December 2015
+ *        Last edit: 03 January 2016
  *            Notes: PlayStation 2
  *----------------------------------------------------------*/
 
@@ -12,9 +12,6 @@ typedef struct RwV3D
 {
     float fX, fY, fZ;
 };
-
-// local int blockCount = countBlocks();
-// Printf("Block count: %d\n", blockCount);
 
 struct
 {
@@ -101,8 +98,16 @@ struct
                     struct
                     {
                         uint32      nScriptVariableSpaceSize;
-                        DWORD       aScriptVariables[nScriptVariableSpaceSize / sizeof(DWORD)] <optimize=false,
-                                            comment="player coords stored at offsets 7, 8, and 9; weapon ammo from 124 - 156; current weapon at 158; wanted level at 159; armor at 160; money at 161">;
+
+                        /* player coords stored at offsets 7, 8, and 9
+                           weapon ammo from 124 - 156
+                           current weapon at 158
+                           wanted level at 159
+                           armor at 160
+                           money at 161
+                           current outfit at 533
+                        */
+                        DWORD       aScriptVariables[nScriptVariableSpaceSize / sizeof(DWORD)] <optimize=false>;
 
                         uint32      blockSize;
                         struct
@@ -131,19 +136,42 @@ struct
                     struct
                     {
                         uint32      nGarageSlots <comment="18, but isn't the max 12? (4 at each garage)">;
-                        DWORD       unknown[10];
+                        DWORD       unknown;
+                        DWORD       unknown;
+                        DWORD       unknown;
+                        DWORD       unknown;
+                        DWORD       unknown;
+                        DWORD       nLoveMediaCarsStatus <format=binary>;
+                        DWORD       unknown;
+                        DWORD       unknown;
+                        DWORD       unknown;
+                        DWORD       unknown;
                         struct
                         {
-                            uint32      vehicleModelID;
+                            uint32      nVehicleModelID;
                             RwV3D       vPosition;
                             float       rotation[3] <comment="euler angles I think">;
-                            DWORD       unknown;
-                            DWORD       unknown <format=binary, comment="immunities?">;
+                            DWORD       unknown <comment="constant 0x3F800000">;
+                            DWORD       nSpecialProperties <format=binary>;
                             BYTE        bColorIDPrimary;
                             BYTE        bColorIDSecondary;
-                            BYTE        bUnknown <comment="radio station?">;
-                            BYTE        bUnknown;
-                            BYTE        bUnknown;
+                            enum<BYTE>
+                            {
+                                HEAD_RADIO,
+                                DOUBLE_CLEF_FM,
+                                K_JAH,
+                                RISE_FM,
+                                LIPS_106,
+                                RADIO_DEL_MUNDO,
+                                MSX_98,
+                                FLASHBACK_FM,
+                                THE_LIBERTY_JAM,
+                                LCFR,
+                                _POLICE_RADIO,
+                                RADIO_OFF
+                            } eRadioStation;
+                            BYTE        bModelVariationA;
+                            BYTE        bModelVariationB;
                             BYTE        bUnknown;
                             BYTE        bUnknown;
                             BYTE        bUnknown;
@@ -204,7 +232,7 @@ struct
                     DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
-                    RwV3D       unknown <comment="player pos?">;
+                    RwV3D       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
@@ -268,15 +296,15 @@ struct
                     DWORD       nMaxInsaneJumpRotation;
                     enum <DWORD>
                     {
-                        NoInsaneStuntsCompleted,
-                        InsaneStunt,
-                        PerfectInsaneStunt,
-                        DoubleInsaneStunt,
-                        PerfectDoubleInsaneStunt,
-                        TripleInsaneStunt,
-                        PerfectTripleInsaneStunt,
-                        QuadrupleInsaneStunt,
-                        PerfectQuadrupleInsaneStunt,
+                        NO_INSANE_STUNTS_COMPLETED,
+                        INSANE_STUNT,
+                        PERFECT_INSANE_STUNT,
+                        DOUBLE_INSANE_STUNT,
+                        PERFECT_DOUBLE_INSANE_STUNT,
+                        TRIPLE_INSANE_STUNT,
+                        PERFECT_TRIPLE_INSANE_STUNT,
+                        QUDRUPLE_INSANE_STUNT,
+                        PERFECT_QUADRUPLE_INSANE_STUNT,
                     } eBestInsaneStuntSoFar;
                     DWORD       unknown <comment="unique jumps completed?">;
                     DWORD       unknown <comment="total unique jumps?">;
@@ -492,24 +520,7 @@ struct
 void align(int n)
 {
     FSkip(n);
-}       
-
-/*int countBlocks()
-{
-    local int mark = FTell();
-    local int blockCount = 0;
-    local int blockSize;
-    
-    FSeek(4);
-    while (FTell() < FileSize()) {
-        blockSize = ReadInt();
-        FSkip(blockSize + 8);
-        blockCount++;
-    }
-    FSeek(mark);
-
-    return blockCount;
-}*/
+}
 
 string checksum(int oldSum)
 {
