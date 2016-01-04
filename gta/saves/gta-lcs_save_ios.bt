@@ -4,7 +4,7 @@
  *             File: gta-lcs_save_ios.bt
  *           Author: thehambone
  *          Purpose: Documenation of GTA LCS save file format
- *        Last edit: 03 January 2016
+ *        Last edit: 04 January 2016
  *            Notes: iOS
  *----------------------------------------------------------*/
 
@@ -64,12 +64,12 @@ struct
                     DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
-                    DWORD       unknown <comment="length of one in-game minute?">;
+                    DWORD       nMinuteLength <comment="length of 1 in-game minute">;
                     DWORD       unknown;
-                    BYTE        unknown <comment="game hour?">;
-                    align(3);
-                    BYTE        unknown <comment="game minute?">;
-                    align(3);
+                    BYTE        bGameHour <comment="current time in-game (hour)">;
+                    BYTE        bGameMinute <comment="current time in-game (minute)">;
+                    WORD        unknown;
+                    DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
@@ -141,7 +141,7 @@ struct
                 {
                     struct
                     {
-                        uint32      nGarageSlots <comment="18, but isn't the max 12? (4 at each garage)">;
+                        DWORD       unknown <comment="18">;
                         DWORD       unknown;
                         DWORD       unknown;
                         DWORD       unknown;
@@ -152,6 +152,21 @@ struct
                         DWORD       unknown;
                         DWORD       unknown;
                         DWORD       unknown;
+
+                        /* Special Vehicle Properties
+                           0x0001 = bullet-proof
+                           0x0002 = fire-proof
+                           0x0004 = explosion-proof
+                           0x0008 = collision-proof
+                           0x0010 = ???
+                           0x0020 = pop-proof
+                           0x0040 = quad damage resistance (DD)
+                           0x0080 = heavy
+                           0x0100 = permanent color
+                           0x0200 = timebomb fitted
+                           0x0400 = tip-proof
+                           0x8000 = ???
+                        */
                         struct
                         {
                             uint32      nVehicleModelID;
@@ -173,7 +188,6 @@ struct
                                 FLASHBACK_FM,
                                 THE_LIBERTY_JAM,
                                 LCFR,
-                                _POLICE_RADIO,
                                 RADIO_OFF
                             } eRadioStation;
                             BYTE        bModelVariationA;
@@ -182,10 +196,8 @@ struct
                             BYTE        bUnknown;
                             BYTE        bUnknown;
                             BYTE        bUnknown;
-                        } aSaveGarageSlot[nGarageSlots] <optimize=false>;
+                        } aSaveGarageSlot[48] <optimize=false>;
                     } stSaveGarageSlots;
-                    align(1320);
-                    DWORD       unknown;
                     // the rest is presaumably info about each script-controlled garages
                 } block <name="Garages">;
                 if (blockSize > sizeof(block)) {
