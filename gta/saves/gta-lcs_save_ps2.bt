@@ -4,7 +4,7 @@
  *             File: gta-lcs_save_ps2.bt
  *           Author: thehambone
  *          Purpose: Documenation of GTA LCS save file format
- *        Last edit: 03 January 2016
+ *        Last edit: 04 January 2016
  *            Notes: PlayStation 2
  *----------------------------------------------------------*/
 
@@ -23,6 +23,7 @@ struct
     
         switch (n++) {
             case 0: /* BLOCK 0: SIMPLEVARS */
+                // Game settings are stored in here somewhere
                 struct
                 {
                     DWORD       unknown;
@@ -135,7 +136,7 @@ struct
                 {
                     struct
                     {
-                        uint32      nGarageSlots <comment="18, but isn't the max 12? (4 at each garage)">;
+                        DWORD       unknown <comment="18">;
                         DWORD       unknown;
                         DWORD       unknown;
                         DWORD       unknown;
@@ -146,6 +147,21 @@ struct
                         DWORD       unknown;
                         DWORD       unknown;
                         DWORD       unknown;
+
+                        /* Special Vehicle Properties
+                           0x0001 = bullet-proof
+                           0x0002 = fire-proof
+                           0x0004 = explosion-proof
+                           0x0008 = collision-proof
+                           0x0010 = ???
+                           0x0020 = pop-proof
+                           0x0040 = quad damage resistance (DD)
+                           0x0080 = heavy
+                           0x0100 = permanent color
+                           0x0200 = timebomb fitted
+                           0x0400 = tip-proof
+                           0x8000 = ???
+                        */
                         struct
                         {
                             uint32      nVehicleModelID;
@@ -167,15 +183,14 @@ struct
                                 FLASHBACK_FM,
                                 THE_LIBERTY_JAM,
                                 LCFR,
-                                _POLICE_RADIO,
-                                RADIO_OFF
+                                RADIO_OFF,
                             } eRadioStation;
                             BYTE        bModelVariationA;
                             BYTE        bModelVariationB;
                             BYTE        bUnknown;
                             BYTE        bUnknown;
                             BYTE        bUnknown;
-                        } aSaveGarageSlot[nGarageSlots] <optimize=false>;
+                        } aSaveGarageSlot[48] <optimize=false>;
                     } stSaveGarageSlots;
                     // the rest is presaumably info about each script-controlled garages
                 } block <name="Garages">;
