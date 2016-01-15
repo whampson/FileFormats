@@ -5,7 +5,7 @@
  *           Author: thehambone
  *          Purpose: Documenation of GTA III save file format
  * Contributions by: OrionSR, Seemann, spaceeinstein
- *        Last edit: 30 December 2015
+ *        Last edit: 14 January 2015
  *----------------------------------------------------------*/
 
 /*************************************************************
@@ -39,17 +39,17 @@
 // ---------- TYPE DECLARATIONS ----------
 enum <BYTE> BOOL
 {
-    TRUE_, FALSE_
+    FALSE_, TRUE_
 };
 
 enum <WORD> BOOL16
 {
-    TRUE__, FALSE__
+    FALSE__, TRUE__
 };
 
 enum <DWORD> BOOL32
 {
-    TRUE___, FALSE___
+    FALSE___, TRUE___
 };
 
 enum <DWORD> LEVEL
@@ -134,7 +134,7 @@ typedef struct Zone
     INT32   nSiblingZoneIndex;
 };
 
-typedef struct CPed
+typedef struct CPlayerPed
 {
     DWORD   pVtbl <comment="virtual method table pointer">;
     RwV3D   _vCameraRoll;
@@ -143,8 +143,8 @@ typedef struct CPed
     DWORD   _pUnknownCMatrix;
     RwV3D   _vCameraWas<comment="name clarification?">;
     DWORD   _pUnknownCMatrix;
-    RwV3D   vPlayerPosition;
-    DWORD   _unknown <comment="related to player coords; rot?">;
+    RwV3D   vPosition;
+    DWORD   _unknown <comment="related to ped coords; rot?">;
     if (isAndroid || isIOS) {
         BYTE    _unknown1[128];
     } else {
@@ -157,12 +157,12 @@ typedef struct CPed
     DWORD   _unknown;
     DWORD   _unknown;
     RwV3D   _vUnknown[3];
-    if (isXbox) {
+    if (isAndroid || isXbox) {
         BYTE    _bUnknown3[168];
     } else {
         BYTE    _bUnknown3[164];
     }
-    DWORD   pPlayerCPed;
+    DWORD   pPlayerCPed <comment="unconfirmed on all but PC">;
     BYTE    _unknown4[204];
     float   fPlayerHealth;
     float   fPlayerArmor;
@@ -183,16 +183,18 @@ typedef struct CPed
     BYTE    _unknown6[12];
     RwV3D   _vUnknown;
     BYTE    _unknown7[72];
-    DWORD   pNearestCPeds[10];
-    BYTE    nLoadedCPeds;
-    BYTE    _unknown8[43];
+    DWORD   pNearestCPeds[10] <comment="unconfirmed on all but PC">;
+    BYTE    nLoadedCPeds <comment="unconfirmed on all but PC">;
+    if (isAndroid || isIOS) {
+        BYTE    _unknown8[47];
+    } else {
+        BYTE    _unknown8[43];
+    }
     FLOAT   fPlayerCurrentStamina;
     FLOAT   fPlayerMaxStamina;
     FLOAT   fSprintDistance;
-    if (isAndroid) {
-        BYTE    _unknown9[192];
-    } else if (isIOS) {
-        BYTE    _uUnknown9[188];
+    if (isAndroid || isIOS) {
+        BYTE    _unknown9[184];
     } else {
         BYTE    _unknown9[156];
     }
@@ -279,7 +281,7 @@ struct
                 align(2);
                 WEATHERTYPE nForcedWeatherType;
                 align(2);
-                FLOAT   _fWeatherInterpolationValue;
+                FLOAT   fWeatherInterpolationValue;
                 CHAR    szCompileTime[24] <comment="unused">;
                 DWORD  _nWeatherTypeInList;
                 if (isPS2) {
@@ -381,7 +383,7 @@ struct
                         DWORD   _unknown;
                         WORD    _unknown;
                         DWORD   _unknown <comment="ped_ref">;
-                        CPed    stCPedObject;
+                        CPlayerPed    stCPlayerPedObject;
                         DWORD   nMaxWantedLevel;
                         DWORD   nMaxChaosLevel;
                         CHAR    szModelName[24]<comment="special actor DFF name only">;
