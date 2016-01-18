@@ -5,7 +5,7 @@
  *           Author: thehambone
  *          Purpose: Documenation of GTA III save file format
  * Contributions by: OrionSR, Seemann, spaceeinstein
- *        Last edit: 14 January 2015
+ *        Last edit: 17 January 2015
  *----------------------------------------------------------*/
 
 /*************************************************************
@@ -621,7 +621,9 @@ struct
                         DWORD   nTime <comment="current game time + 10000; updates when crane has finished lifting car">;
                         enum <BYTE>
                         {
-                            IDLE, CRUSHER_MILITARY_CRANE_ACTIVE, INACTIVE
+                            CRANE_IDLE,
+                            CRUSHER_MILITARY_CRANE_ACTIVE,
+                            CRANE_INACTIVE
                         } eCraneActivity;
                         enum <BYTE>
                         {
@@ -698,15 +700,20 @@ struct
                     struct
                     {
                         RwV3D   vPosition;
-                        DWORD   pText[6] <comment="pointers to text assigned with opcodes for text">;
-                        DWORD   _unknown;
+                        DWORD   pText[6] <comment="pointers to message string; opcodes 024B, 024C, 0378, 0379, 037A, 037B, 037C, 037D, 0386, 0387, 0388, 0389">;
+                        DWORD   nMessageTimer <comment="game timer when message ends for states 5 and 6">;
                         DWORD   nStaticObjectIndex <comment="index in static objects pool">;
                         enum <DWORD>
                         {
                             PHONE_IDLE = 3,
-                            PHONE_RINGING = 9
+                            RINGING_MESSAGE_ONCE,
+                            RINGING_MESSAGE_REPEATED_NOT_PICKED_UP,
+                            RINGING_MESSAGE_REPEATED_PICKED_UP,
+                            IDLE_FINISHED_MESSAGE_ONCE,
+                            IDLE_FINISHED_MESSAGE_REPEATED,
+                            RINGING
                         } ePhoneStatus;
-                        BYTE    _unknown;
+                        BOOL    bIsPlayerInRangeOfPhone;
                         align(3);
                     } aPhoneInfo[nNumberOfPhones] <optimize=false>;
                 } stPhoneInfoData;
