@@ -4,13 +4,18 @@
  *             File: gta-lcs_save_ps2.bt
  *           Author: thehambone
  *          Purpose: Documenation of GTA LCS save file format
- *        Last edit: 04 January 2016
+ *        Last edit: 16 February 2016
  *            Notes: PlayStation 2
  *----------------------------------------------------------*/
 
 typedef struct RwV3D
 {
     float fX, fY, fZ;
+};
+
+enum <DWORD> FLAG__
+{
+    OFF__, ON__
 };
 
 struct
@@ -35,23 +40,24 @@ struct
                     DWORD       unknown;
                     BYTE        bGameHour <comment="current time in-game (hour)">;
                     BYTE        bGameMinute <comment="current time in-game (minute)">;
-                    WORD        unknown;
+                    WORD        wUnknown <comment="align?">;
+                    DWORD       unknown;
+                    FLOAT       fUnknown;
                     DWORD       unknown;
                     DWORD       unknown;
+                    FLOAT       fUnknown;
                     DWORD       unknown;
+                    WORD        nWeatherRelated;
+                    WORD        nWeatherRelated;
+                    FLOAT       fUnknown;
                     DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
+                    FLOAT       fUnknown <comment="weather interpolation?">;
                     RwV3D       unknown <comment="camera pos?">;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
                     DWORD       unknown;
                     DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
+                    FLOAT       fUnknown;
                     DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
@@ -82,12 +88,15 @@ struct
                     FLOAT       fUnknown;
                     FLOAT       fUnknown;
                     DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
+                    struct
+                    {
+                        DWORD       nSecond;
+                        DWORD       nMinute;
+                        DWORD       nHour;
+                        DWORD       nDay;
+                        DWORD       nMonth;
+                        DWORD       nYear;
+                    } timestamp;
                 } block <name="SimpleVars">;
                 break;
     
@@ -147,7 +156,6 @@ struct
                         DWORD       unknown;
                         DWORD       unknown;
                         DWORD       unknown;
-
                         /* Special Vehicle Properties
                            0x0001 = bullet-proof
                            0x0002 = fire-proof
@@ -167,7 +175,7 @@ struct
                             uint32      nVehicleModelID;
                             RwV3D       vPosition;
                             float       rotation[3] <comment="euler angles I think">;
-                            DWORD       unknown <comment="constant 0x3F800000">;
+                            float       fHandlingMultiplier <comment="seems to only apply to bikes">;
                             DWORD       nSpecialProperties <format=binary>;
                             BYTE        bColorIDPrimary;
                             BYTE        bColorIDSecondary;
@@ -213,9 +221,9 @@ struct
                     int32       nMoneyOnScreen;
                     DWORD       nHiddenPackagesFound <comment="changing this does nothing in-game">;
                     DWORD       unknown;
+                    FLAG__      hasInfiniteSprint;
                     DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
+                    FLAG__      isFireproof;
                     ubyte       bMaxHealth;
                     ubyte       bMaxArmor;
                     BYTE        bUnknown;
@@ -248,10 +256,10 @@ struct
                     DWORD       unknown;
                     DWORD       unknown;
                     RwV3D       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
                     DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
@@ -292,8 +300,8 @@ struct
                     DWORD       unknown;
                     DWORD       unknown;
                     DWORD       nHelicoptersDestroyed;
-                    FLOAT       fUnknown;
-                    FLOAT       fUnknown;
+                    FLOAT       fMissionPoints <comment="not sure why this is a float">;
+                    FLOAT       fTotalMissionPoints <comment="not sure why this is a float">;
                     DWORD       nKgsOfExplosivesUsed;
                     DWORD       nBulletsThatHit;
                     DWORD       nCarsCrushed;
@@ -520,7 +528,7 @@ struct
                             DWORD   nCourse10;
                         } fastestTime <comment="seconds">;
                     } bumpAndGrinds;
-                    DWORD       _unknown[10] <comment="probably padding">;
+                    DWORD       _unknown[10] <comment="padding?">;
                 } block <name="Stats">;
                 break;
         }
