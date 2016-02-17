@@ -4,8 +4,8 @@
  *             File: gta-lcs_save_ios.bt
  *           Author: thehambone
  *          Purpose: Documenation of GTA LCS save file format
- *        Last edit: 04 January 2016
- *            Notes: iOS
+ *        Last edit: 16 February 2016
+ *            Notes: iOS, very similar to Android
  *----------------------------------------------------------*/
 
 /**********
@@ -17,6 +17,11 @@
 typedef struct RwV3D
 {
     float fX, fY, fZ;
+};
+
+enum <DWORD> FLAG__
+{
+    OFF__, ON__
 };
 
 struct
@@ -32,12 +37,12 @@ struct
                 struct
                 {
                     DWORD       unknown;
-                    DWORD       unknown;
+                    DWORD       unknown <comment="8">;
                     DWORD       unknown;
                     wchar_t     saveName[8] <comment="GXT key">;
                     DWORD       unknown;
-                    DWORD       unknown <comment="current island?">;
-                    DWORD       unknown <comment="current island?">;
+                    DWORD       unknown;
+                    DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
@@ -68,18 +73,19 @@ struct
                     DWORD       unknown;
                     BYTE        bGameHour <comment="current time in-game (hour)">;
                     BYTE        bGameMinute <comment="current time in-game (minute)">;
-                    WORD        unknown;
+                    WORD        wUnknown <comment="align?">;
                     DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
-                    DWORD       unknown;
+                    FLOAT       fUnknown;
                     DWORD       unknown;
                     DWORD       unknown;
                     FLOAT       fUnknown;
-                    RwV3D       unknownCoord <comment="camera pos/player pos?">;
+                    DWORD       unknown;
+                    WORD        nWeatherRelated;
+                    WORD        nWeatherRelated;
+                    FLOAT       fUnknown;
+                    DWORD       unknown;
+                    FLOAT       fUnknown <comment="weather interpolation?">;
+                    RwV3D       unknownCoord <comment="camera pos?">;
                     DWORD       unknown;
                     DWORD       unknown;
                     DWORD       unknown;
@@ -172,7 +178,7 @@ struct
                             uint32      nVehicleModelID;
                             RwV3D       vPosition;
                             float       rotation[3] <comment="euler angles I think">;
-                            DWORD       unknown <comment="constant 0x3F800000">;
+                            float       fHandlingMultiplier <comment="seems to only apply to bikes">;
                             DWORD       nSpecialProperties <format=binary>;
                             BYTE        bColorIDPrimary;
                             BYTE        bColorIDSecondary;
@@ -188,11 +194,10 @@ struct
                                 FLASHBACK_FM,
                                 THE_LIBERTY_JAM,
                                 LCFR,
-                                RADIO_OFF
+                                RADIO_OFF,
                             } eRadioStation;
                             BYTE        bModelVariationA;
                             BYTE        bModelVariationB;
-                            // align?
                             BYTE        bUnknown;
                             BYTE        bUnknown;
                             BYTE        bUnknown;
@@ -208,21 +213,287 @@ struct
             case 3:  /* BLOCK 3: PLAYER */
                 struct
                 {
-                    align(128);
-                    DWORD   unknown <comment="max player health/armor?">;
-                    DWORD   unknown <comment="max player health/armor?">;
-                    DWORD   unknown <comment="max player health/armor?">;
+                    DWORD   _unknown[32];
+                    int32       nMoney;
+                    DWORD       unknown;
+                    int32       nMoneyOnScreen;
+                    DWORD       nHiddenPackagesFound;
+                    DWORD       unknown;
+                    FLOAT       fUnknown;
+                    DWORD       unknown;
+                    ubyte       bMaxHealth;
+                    ubyte       bMaxArmor;
+                    WORD        wUnknown;
+                    WORD        wUnknown <comment="fireproof or infinite sprint">;
+                    WORD        wUnknown <comment="fireproof or infinite sprint">;
+                    WORD        wUnknown;
+                    WORD        wUnknown;
                 } block <name="Player">;
-                if (blockSize > sizeof(block)) {
-                    align(blockSize - sizeof(block));
-                }
                 break;
     
             case 4:  /* BLOCK 4: STATS */
                 struct
                 {
-                    align(blockSize);
-                } block <name="Stats", comment="undocumented">;
+                    DWORD       nPeopleYouveWasted;
+                    DWORD       nPeopleWastedByOthers;
+                    DWORD       nCarsExploded;
+                    DWORD       nBoatsDestroyed;
+                    DWORD       nTiresPoppedWithGunfire;
+                    DWORD       nBulletsFired;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown <comment="COP wasted?">;
+                    DWORD       unknown <comment="CIVMALE wasted?">;
+                    DWORD       unknown <comment="CIVFEMALE wasted?">;
+                    DWORD       nGANG1Wasted <comment="MAFIA LEONE">;
+                    DWORD       nGANG2Wasted <comment="TRIAD">;
+                    DWORD       nGANG3Wasted <comment="DIABLO">;
+                    DWORD       nGANG4Wasted <comment="YAKUZA">;
+                    DWORD       nGANG5Wasted <comment="YARDIE">;
+                    DWORD       nGANG6Wasted <comment="COLUMBIAN">;
+                    DWORD       nGANG7Wasted <comment="HOOD">;
+                    DWORD       nGANG8Wasted <comment="MAFIA FORELLI">;
+                    DWORD       nGANG9Wasted <comment="MAFIA SINDACCOS">;
+                    DWORD       unknown <comment="EMERGENCY wasted?">;
+                    DWORD       unknown <comment="FIREMAN wasted?">;
+                    DWORD       nCriminalsWasted;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       nHelicoptersDestroyed;
+                    FLOAT       fMissionPoints <comment="not sure why this is a float">;
+                    FLOAT       fTotalMissionPoints <comment="not sure why this is a float">;
+                    DWORD       nKgsOfExplosivesUsed;
+                    DWORD       nBulletsThatHit;
+                    DWORD       nCarsCrushed;
+                    DWORD       nNumberOfHeadshots;
+                    DWORD       nTotalNumberOfWantedStarsAttained;
+                    DWORD       nTotalNumberOfWantedStarsEvaded;
+                    DWORD       nTimesBusted;
+                    DWORD       nHospitalVisits;
+                    DWORD       nDaysPassedInGame;
+                    DWORD       nNumberOfSaves;
+                    DWORD       nSprayings;
+                    FLOAT       fMaxInsaneJumpDist;
+                    FLOAT       fMaxInsaneJumpHeight;
+                    DWORD       nMaxInsaneJumpFlips;
+                    DWORD       nMaxInsaneJumpRotation;
+                    enum <DWORD>
+                    {
+                        NO_INSANE_STUNTS_COMPLETED,
+                        INSANE_STUNT,
+                        PERFECT_INSANE_STUNT,
+                        DOUBLE_INSANE_STUNT,
+                        PERFECT_DOUBLE_INSANE_STUNT,
+                        TRIPLE_INSANE_STUNT,
+                        PERFECT_TRIPLE_INSANE_STUNT,
+                        QUDRUPLE_INSANE_STUNT,
+                        PERFECT_QUADRUPLE_INSANE_STUNT,
+                    } eBestInsaneStuntSoFar;
+                    DWORD       unknown <comment="unique jumps completed?">;
+                    DWORD       unknown <comment="total unique jumps?">;
+                    DWORD       nMissionAttempts;
+                    DWORD       nPassengersDroppedOff;
+                    DWORD       nCashMadeInTaxi;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    DWORD       unknown;
+                    DWORD       nPeopleSavedInAnAmbulance;
+                    DWORD       nCriminalsKilledOnVigilanteMission;
+                    DWORD       nTotalFiresExtinguished;
+                    DWORD       unknown <comment="highest paramedic/vigilante/firefighter level">;
+                    DWORD       unknown <comment="highest paramedic/vigilante/firefighter level">;
+                    DWORD       unknown <comment="highest paramedic/vigilante/firefighter level">;
+                    DWORD       nPhotosTaken;
+                    DWORD       nRampagesPassed;
+                    DWORD       nMostTimeLeftInKarmageddon <comment="seconds">;
+                    DWORD       nMostKillsInRCTriadTakeDown;
+                    DWORD       unknown <comment="total rampages?">;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    FLOAT       fUnknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    FLOAT       fUnknown;
+                    DWORD       nLongestWheelieTime;
+                    DWORD       nLongestStoppieTime;
+                    DWORD       nLongest2WheelsTime;
+                    FLOAT       fLongestWheelieDistance;
+                    FLOAT       fLongestStoppieDistance;
+                    FLOAT       fLongest2WheelsDistance;
+                    FLOAT       fLongestFacePlantDistance;
+                    FLOAT       fUnknown;
+                    DWORD       nPropertyDestroyed;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    BYTE        bUnknown;
+                    FLOAT       fUnknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    char        szLastMissionPassed[8] <comment="GXT key">;
+                    DWORD       unknown;
+                    DWORD       nCarsSold;
+                    DWORD       nCashMadeSellingCars;
+                    DWORD       nBikesSold;
+                    DWORD       nCashMadeSellingBikes;
+                    DWORD       unknown <comment="cars found for Love Media (or total)">;
+                    DWORD       unknown <comment="cars found for Love Media (or total)">;
+                    DWORD       nHighestSlashTVLevel;
+                    DWORD       nTotalCashMadeOnSlashTV;
+                    DWORD       nOpponentsKilledOnSlashTV;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       nCashMadeCollectingTrash;
+                    DWORD       nHitmenWasted;
+                    DWORD       nTotalAvengingAngelJusticeDishedOut;
+                    DWORD       nNumberOfAvengingAngelMissionsPassed;
+                    struct
+                    {
+                        DWORD   nPortland;
+                        DWORD   nStauntonIsland;
+                        DWORD   nShoresideVale;
+                    } highestAvengingAngelLevel;
+                    DWORD       nMostTimeLeftOnWongSideOfTheTrack <comment="seconds">;
+                    DWORD       unknown;
+                    DWORD       unknown <comment="most air achieved?">;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown;
+                    DWORD       unknown <comment="outfit changes?">;
+                    struct
+                    {
+                        struct
+                        {
+                            DWORD   nThrashinRC;
+                            DWORD   nRaginRC;
+                            DWORD   nChasinRC;
+                        } fastestLap <comment="seconds">;
+                        struct
+                        {
+                            DWORD   nThrashinRC;
+                            DWORD   nRaginRC;
+                            DWORD   nChasinRC;
+                        } bestPosition;
+                    } rcRaces;
+                    struct
+                    {
+                        struct
+                        {
+                            DWORD   nLowRiderRumble;
+                            DWORD   nDeimosDash;
+                            DWORD   nWiCheetahRun;
+                            DWORD   nRedLightRacing;
+                            DWORD   nTorringtonTT;
+                            DWORD   nGangstaGP;
+                        } bestPosition;
+                        struct
+                        {
+                            DWORD   nLowRiderRumble;
+                            DWORD   nDeimosDash;
+                            DWORD   nWiCheetahRun;
+                            DWORD   nRedLightRacing;
+                            DWORD   nTorringtonTT;
+                            DWORD   nGangstaGP;
+                        } fastestLap <comment="seconds">;
+                        struct
+                        {
+                            DWORD   nLowRiderRumble;
+                            DWORD   nDeimosDash;
+                            DWORD   nWiCheetahRun;
+                            DWORD   nRedLightRacing;
+                            DWORD   nTorringtonTT;
+                            DWORD   nGangstaGP;
+                        } fastestTime <comment="seconds">;
+                    } races;
+                    struct
+                    {
+                        struct
+                        {
+                            DWORD   nCourse1;
+                            DWORD   nCourse2;
+                            DWORD   nCourse3;
+                            DWORD   nCourse4;
+                            DWORD   nCourse5;
+                            DWORD   nCourse6;
+                            DWORD   nCourse7;
+                            DWORD   nCourse8;
+                            DWORD   nCourse9;
+                            DWORD   nCourse10;
+                        } fastestLap <comment="seconds">;
+                        struct
+                        {
+                            DWORD   nCourse1;
+                            DWORD   nCourse2;
+                            DWORD   nCourse3;
+                            DWORD   nCourse4;
+                            DWORD   nCourse5;
+                            DWORD   nCourse6;
+                            DWORD   nCourse7;
+                            DWORD   nCourse8;
+                            DWORD   nCourse9;
+                            DWORD   nCourse10;
+                        } fastestTime <comment="seconds">;
+                    } bumpAndGrinds;
+                    DWORD       _unknown[11] <comment="padding?">;
+                } block <name="Stats">;
                 break;
         }
     } blocks[5] <optimize=false, open=true>;
@@ -230,7 +501,7 @@ struct
     BYTE    bUnknown <comment="align?">;
     BYTE    bUnknown <comment="align?">;
     BYTE    bUnknown <comment="align?">;
-} lcsSave <name="GTA LCS iOS Save", open=true>;
+} lcsSave <name="GTA LCS Mobile Save", open=true>;
  
 void align(int n)
 {
