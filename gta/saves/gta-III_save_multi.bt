@@ -5,7 +5,7 @@
  *           Author: thehambone
  *          Purpose: Documenation of GTA III save file format
  * Contributions by: OrionSR, Seemann, spaceeinstein
- *        Last edit: 17 January 2015
+ *        Last edit: 23 January 2015
  *----------------------------------------------------------*/
 
 /*************************************************************
@@ -413,12 +413,12 @@ struct
                     {
                         struct
                         {
-                            VEHICLE32 eModelID;
-                            RwV3D   vPosition;
-                            RwV3D   vRotation <comment="how does this work? euler angles?">;
-                            DWORD   nImmunities <format=binary>;
-                            BYTE    nPrimaryColorID;
-                            BYTE    nSecondaryColorID;
+                            VEHICLE32   eModelID;
+                            RwV3D       vPosition;
+                            float       vRotation[3] <comment="how does this work? euler angles?">;
+                            DWORD       nImmunities <format=binary>;
+                            BYTE        nPrimaryColorID;
+                            BYTE        nSecondaryColorID;
                             enum <BYTE>
                             {
                                 HEAD_RADIO, DOUBLE_CLEF_FM, JAH_RADIO, RISE_FM, LIPS_106,
@@ -1085,14 +1085,14 @@ struct
                     DWORD   size;
                     struct
                     {
-                        DWORD   _unknown00;
+                        DWORD   _unknown00 <format=binary, comment="ped type mask? set bit seems to coorespond to ped type ID (index in array) for most structures">;
                         FLOAT   _fUnknown04;
                         FLOAT   _fUnknown08;
                         FLOAT   _fUnknown0C;
-                        FLOAT   _fUnknown10;
-                        FLOAT   _fUnknown14;
-                        DWORD   nThreat <format=binary, comment="threat flags, each bit index cooresponds with pedtype ID; opcodes 03F1, 03F2, 042A">;
-                        DWORD   _unknown1C;
+                        FLOAT   fFleeDistance <comment="see pedstats.dat">;
+                        FLOAT   fHeadingChangeRate <comment="degrees; see pedstats.dat">;
+                        DWORD   nThreatFlags <format=binary, comment="threat flags, each bit index cooresponds with pedtype ID; opcodes 03F1, 03F2, 042A; see ped.dat">;
+                        DWORD   nAvoidFlags <format=binary, comment="avoid flags; see ped.dat">;
                     } aPedType[23] <optimize=false>;
                 } stPedTypes;
             } block <name="PedTypes">;
