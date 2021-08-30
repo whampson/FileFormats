@@ -1,0 +1,114 @@
+//------------------------------------------------
+//--- 010 Editor v10.0 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+typedef enum <byte>
+{
+    PARAMTYPE_BYTE = 6
+} PARAMTYPE;
+
+typedef struct
+{
+    uint16      op;
+    PARAMTYPE   operandType;
+    DWORD       address <format=hex>;
+} JMP <comment=JumpDisplay>;
+
+typedef struct
+{
+    uint16      address;
+} SaveVariable <comment=SaveVariableDisplay>;
+
+typedef struct
+{
+    char name[24];
+} Object <comment=ObjectDisplay>;
+
+struct SCM
+{
+    struct
+    {
+        uint32      mainScriptSize;
+        uint32      largestMissionScriptSize;
+    } header;
+    
+    struct
+    {
+        struct
+        {
+            JMP         nextChunk;
+            char        targetGame;
+    
+            local int   globalVarSpaceSize = (chunk0.nextChunk.address - FTell()) + 8;
+            byte        globalVariableSpace[globalVarSpaceSize];
+        } chunk0;
+    
+        struct
+        {
+            JMP         nextChunk;
+            byte        _pad;
+    
+            uint32      numSaveVariables;
+            SaveVariable saveVariables[numSaveVariables];
+            
+            local int i;
+            for (i = 0; i < numSaveVariables; i++)
+            {
+                Printf("%d\n", saveVariables[i].address / 4);
+            }
+    
+            uint32      numObjects;
+            Object      objects[numObjects];
+        } chunk1;
+    
+        struct
+        {
+            JMP         nextChunk;
+            byte        _pad;
+    
+            uint16      numTrueGlobals;
+            uint16      mostGlobals;
+            uint16      largestMissionScriptSize;
+            uint16      numMissionScripts;
+            uint16      numExclusiveMissionScripts;
+            uint16      unknown <comment="pad?">;
+            DWORD       missionScriptPointers[numExclusiveMissionScripts] <format=hex, comment="+8">;
+        } chunk2;
+
+    } scm <open=true>;
+} lcsScm <open=true>;
+
+void align4()
+{
+    FSeek(FTell() + 3 & 0xFFFFFFFC);
+}
+
+string SaveVariableDisplay(SaveVariable& v)
+{
+    string varNum;
+    SPrintf(varNum, "$%d", v.address / 4);
+    return varNum;
+}
+
+string ObjectDisplay(Object& o)
+{
+    string name;
+    SPrintf(name, "%s", o.name);
+    return name;
+}
+
+string JumpDisplay(JMP& j)
+{
+    string addr;
+    SPrintf(addr, "JMP %04Xh", j.address);
+    return addr;
+}
