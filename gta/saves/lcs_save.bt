@@ -1,0 +1,1130 @@
+/*-----------------------------------------------------------------------------
+ *--- 010 Editor v6.0.2 Binary Template ---------------------------------------
+ *
+ *      File: lcs_save.bt
+ *    Author: thehambone
+ *   Purpose: Documenation of the GTA:LCS save file format.
+ *   Updated: 04 October 2020
+ *---------------------------------------------------------------------------*/
+
+/** TODO:
+ **   - Make List of Statistics (LCS) page on GTAModding
+ **/
+
+/** ========== Typedefs ========== **/
+
+// 8-bit boolean type
+typedef enum <BYTE>
+{
+    FALSE_8, TRUE_8
+} bool;
+
+// 16-bit boolean type
+typedef enum <WORD>
+{
+    FALSE_16, TRUE_16
+} bool16;
+
+// 32-bit boolean type
+typedef enum <DWORD>
+{
+    FALSE_32, TRUE_32
+} bool32;
+
+// RenderWare 2D Vector
+typedef struct
+{
+    float x, y;
+} RwV2d;
+
+// RenderWare 3D Vector
+typedef struct
+{
+    float x, y, z;
+} RwV3d;
+
+// Quaternion
+typedef struct
+{
+    float rx, ry, rz, rw;
+} Quaternion;
+
+// GTA LCS weather types
+enum <int16> WeatherType
+{
+    WEATHER_SUNNY,
+    WEATHER_CLOUDY,
+    WEATHER_RAINY,
+    WEATHER_FOGGY,
+    WEATHER_EXTRA_SUNNY,
+    WEATHER_HURRICANE,
+    WEATHER_EXTRA_COLOURS,
+    WEATHER_SNOWY
+};
+
+// GTA LCS radio stations
+enum <ubyte> RadioStation
+{
+    HEAD_RADIO,
+    DOUBLE_CLEF_FM,
+    K_JAH,
+    RISE_FM,
+    LIPS_106,
+    RADIO_DEL_MUNDO,
+    MSX_98,
+    FLASHBACK_FM,
+    THE_LIBERTY_JAM,
+    LCFR,
+ /* MY_MIX,             // Mobile only */
+    RADIO_OFF,
+};
+
+enum <uint32> RadarMode
+{
+    MAP_AND_BLIPS,
+    BLIPS_ONLY,
+    RADAR_OFF
+};
+
+// Represents an instant in time with seconds precision
+typedef struct
+{
+    uint32      second;
+    uint32      minute;
+    uint32      hour;
+    uint32      day;
+    uint32      month;
+    uint32      year;
+} Timestamp;
+
+// SCM global or local variable
+typedef union
+{
+    float       fValue;
+    int32       iValue;
+} ScriptVar <comment=displayGlobal>;
+
+enum <uint32> Vehicle
+{
+    SPIDER = 130,       // Deimos SP
+    LANDSTK,
+    IDAHO,
+    STINGER,
+    LINERUN,
+    PEREN,
+    SENTINL,
+    PATRIOT,
+    FIRETRK,
+    TRASHM,
+    STRETCH,
+    MANANA,
+    INFERNS,
+    BLISTA,
+    PONY,
+    MULE,
+    CHEETAH,
+    AMBULAN,
+    FBICAR,
+    MOONBEM,
+    ESPERAN,
+    TAXI,
+    KURUMA,
+    BOBCAT,
+    WHOOPEE,
+    BFINJC,
+    HEARSE,
+    POLICAR,
+    ENFORCR,
+    SECURI,
+    BANSHEE,
+    BUS,
+    RHINO,
+    BARRCKS,
+    DODO,
+    COACH,
+    CABBIE,
+    STALION,
+    RUMPO,
+    RCBANDT,
+    BELLYUP,
+    MRWONGS,
+    MAFIACR,
+    YARDICR,
+    YAKUZCR,
+    DIABLCR,
+    COLOMCR,
+    HOODSCR,
+    PANLANT,
+    FLATBED,
+    YANKEE,
+    BORGNIN,        // Bickle'76
+    TOYZ,
+    CAMPVAN,
+    BALLOT,
+    SHELBY,         // Hellenbach GT
+    PONTIAC,        // Phobos VT
+    ESPRIT,         // V8 Ghost
+    BARRACK,        // Barracks OL w/ cargo
+    HOTROD,
+    SINDACO,
+    FORELLI,
+    FERRY,
+    GHOST,
+    SPEEDER,
+    REEFER,
+    PREDATR,
+    TRAIN,
+    HELIESC,        // Escape
+    HELICHO,        // Chopper
+    AEROPL,         // Airtrain
+    DODO2,          // DeadDodo
+    ANGEL,
+    PIZZABO,
+    NOODLBO,
+    PCJ600,
+    FAGGIO,
+    FREEWAY,
+    AVENGER,
+    SANCH2,         // Manchez
+    SANCHEZ,
+    RCGOBLI,
+    RCRAIDE,
+    HUNTER,
+    MAVERIC,
+    POLMAV,
+    VCNMAV
+};
+
+enum <ubyte> GarageType
+{
+    GARAGE_MISSION = 1,
+    GARAGE_BOMBSHOP1,           // Timer
+    GARAGE_BOMBSHOP2,           // Ignition
+    GARAGE_BOMBSHOP3,           // Remote
+    GARAGE_RESPRAY,
+    GARAGE_COLLECTORSITEMS,
+    GARAGE_COLLECTSPECIFICCARS,
+    GARAGE_COLLECTCARS_1,       // Love garage
+    GARAGE_COLLECTCARS_2,
+    GARAGE_COLLECTCARS_3,
+    GARAGE_FORCARTOCOMEOUTOF,
+    GARAGE_60SECONDS,
+    GARAGE_CRUSHER,
+    GARAGE_MISSION_KEEPCAR,
+    GARAGE_FOR_SCRIPT_TO_OPEN,
+    GARAGE_HIDEOUT_ONE,         // Portland
+    GARAGE_HIDEOUT_TWO,         // Staunton
+    GARAGE_HIDEOUT_THREE,       // Shoreside
+    GARAGE_FOR_SCRIPT_TO_OPEN_AND_CLOSE,
+    GARAGE_KEEPS_OPENING_FOR_SPECIFIC_CAR,
+    GARAGE_MISSION_KEEPCAR_REMAINCLOSED,
+    GARAGE_COLLECTCARS_4,
+    GARAGE_FOR_SCRIPT_TO_OPEN_FOR_CAR
+};
+
+enum <ubyte> GarageState
+{
+    STATE_CLOSED,
+    STATE_OPENED,
+    STATE_CLOSING,
+    STATE_OPENING,
+    STATE_OPENED_WITH_SERVICED_CAR,
+    STATE_CLOSED_WITH_VEHICLE_DROPOFF
+};
+
+enum <uint32> StuntJump
+{
+    NO_INSANE_STUNTS_COMPLETED,
+    INSANE_STUNT,
+    PERFECT_INSANE_STUNT,
+    DOUBLE_INSANE_STUNT,
+    PERFECT_DOUBLE_INSANE_STUNT,
+    TRIPLE_INSANE_STUNT,
+    PERFECT_TRIPLE_INSANE_STUNT,
+    QUDRUPLE_INSANE_STUNT,
+    PERFECT_QUADRUPLE_INSANE_STUNT,
+};
+
+/** ========== Platform Detection ========== **/
+
+LittleEndian();
+
+local int isPS2     = 0;
+local int isPSP     = 0;
+local int isAndroid = 0;
+local int isIOS     = 0;
+
+if (!determinePlatform())
+{
+    Printf("Invalid save file - unable to determine file origin!\n");
+    return;
+}
+else
+{
+    Printf("IsPS2     = %d\n", isPS2);
+    Printf("IsPSP     = %d\n", isPSP);
+    Printf("IsAndroid = %d\n", isAndroid);
+    Printf("IsIOS     = %d\n", isIOS);
+}
+
+/** ========== Save File Structure ========== **/
+
+/*
+ * An underscore (_) before a variable name denotes a field that is not used
+ * by the game under default circumstances. This means that changing the
+ * value has no effect in-game.
+ */
+
+struct
+{
+    local int n = 0;    // Block index for loading blocks
+
+    struct
+    {
+        // Block header
+        char            sig[4];
+        uint32          size;
+
+        switch (n++)
+        {
+            case 0:  /* -- BLOCK 0: SIMPLEVARS -- */
+                struct
+                {
+                    if (isAndroid || isIOS)
+                    {
+                        uint32          __unused00;
+                        uint32          eight;    /* constant */
+                        uint32          __unused08;
+                        wchar_t         lastMissionPassedName[0x78 / 2] <comment="GXT keys only">;
+                    }
+                    else /*if (isPS2 || isPSP)*/ {
+                        uint32          __unused00;
+                        uint32          three;    /* constant */
+                    }
+                    uint32          currLevel <comment="current island (1 = Portland, 2 = Staunton, 3 = Shoreside); changing this does nothing in game">;
+                    uint32          currArea <comment="interior number">;
+                    uint32          prefsLanguage <comment="Mobile: indicates which language is set (ordered same as language menu), changing this does nothing in game">;
+                    uint32          millisecondsPerGameMinute <comment="length of 1 in-game minute">;
+                    uint32          lastClockTick;
+                    ubyte           gameClockHours <comment="time shows up as <value> mod 24">;
+                    ubyte           gameClockMinutes <comment="time shows up as <value> mod 60">;
+                    uint16          gameClockSeconds <comment="always 0">;
+                    uint32          totalTimePlayedInMilliseconds <comment="millis elapsed since start of story">;
+                    float           timeScale <comment="always 0; changing this has no effect">;
+                    float           timeStep <comment="frame delta time; always 0; changing this has no effect">;
+                    float           timeStepNonClipped <comment="changing this appears to have no effect">;
+                    float           framesPerUpdate <comment="changing this appears to have no effect">;
+                    uint32          frameCounter <comment="frames processed in last playing session">;
+                    WeatherType     oldWeatherType <comment="previous weather; changing this has no effect; use weatherTypeInList">;
+                    WeatherType     newWeatherType <comment="current weather; changing this has no effect; use weatherTypeInList">;
+                    WeatherType     forcedWeatherType <comment="forces weather to desired type; resets to -1 and resumes normal weather after one hour">;
+                    align(2);
+                    uint32          weatherTypeInList <comment="current index in hardcoded weather sequence array; range: 0-63">;
+                    float           interpolationValue <comment="blend between old and new weather type; changing has no effect">;
+                    RwV3d           cameraPosition <comment="world XYZ coords of player camera">;
+                    float           prefsVehicleCameraMode <comment="0 = bumper, 1 = near, 2 = normal, 3 = far, 4 = fixed, 5 = cinematic; not sure why this is a float">;
+                    float           prefsPlayerCameraMode <comment="1 = near, 2 = default, 3 = far; works on mobile only, use global $516 for PS2/PSP">;
+                    uint32          extraColor;
+                    bool32          isExtraColorOn;
+                    float           extraColorInterpolation;
+                    uint32          prefsBrightness <comment="Mobile: in-game max=700 min=180; PS2/PSP: in-game max=384 min=128; can go above or below">;
+                    bool            prefsDisplayHud;
+                    bool            prefsShowSubtitles;
+                    align(2);
+                    RadarMode       radarMode;
+                    if (isPS2)
+                    {
+                        bool32          blurOn <comment="0 makes the game look much more vibrant">;
+                        DWORD           _unknown78;
+                        DWORD           _unknown7C;
+                        bool32          prefsUseWideScreen;
+                        uint32          prefsRadioVolume <comment="in-game max=127 min=0">;
+                        uint32          prefsSFXVolume <comment="in-game max=127 min=0">;
+                        RadioStation    prefsRadioStation <comment="current radio station selected in pause menu; doesn't really do anything">;
+                        byte            prefsOutput <comment="1; unused; gta3 mono/stereo leftover? setting to 0 does nothing">;
+                        align(2);
+                        DWORD           _unused90[11];
+                        uint16          controllerConfiguration <comment="0 = setup1, 1 = setup2">;
+                        align(2);
+                        bool32          prefsDisableInvertLook;
+                        bool            prefsUseVibration;
+                        align(3);
+                        bool32          hasPlayerCheated <comment="shows a warning about using cheats before saving a game">;
+                        bool32          allTaxisHaveNitro <comment="causes taxis to bounce when the horn is pressed! (like VC)">;
+                        bool            targetIsOn <comment="enables/disables map marker (square on map)">;
+                        align(3);
+                        RwV2d           targetPos <comment="map marker coords">;
+                        DWORD           _unusedDC;
+                        Timestamp       saveTime <comment="time on system when game was saved">;
+                    }
+                    else /* if (isPSP || isIOS || isAndroid) */
+                    {
+                        bool            blurOn <comment="0 makes the game look much more vibrant">;
+                        align(3);
+                        uint32          prefsMusicVolume <comment="in-game max=127 min=0">;
+                        uint32          prefsSfxVolume <comment="in-game max=127 min=0">;
+                        RadioStation    prefsRadioStation <comment="current radio station selected in pause menu; doesn't really do anything">;
+                        byte            prefsOutput <comment="1; unused; gta3 mono/stereo leftover? setting to 0 does nothing">;
+                        align(2);
+                        DWORD           _unused100[10];
+                        if (!isPSP)
+                        {
+                            DWORD           _unknown1 <comment="look like garbage; unused?">;
+                        }
+                        uint16          controllerConfiguration <comment="PSP only; 0 or 1 = setup2, 2 or 3 = setup1 (weird right?); ignored on mobile">;
+                        if (isPSP)
+                        {
+                            bool            prefsDisableInvertLook <comment="1 = disabled">;
+                        }
+                        else
+                        {
+                            bool            prefsInvertLook <comment="1 = enabled">;
+                        }
+                        bool            swapNippleAndDPad <comment="PSP only; 1 = use d-pad for player movement; causes weird behavior/crash on mobile">;
+                        bool            hasPlayerCheated <comment="PSP only; shows a warning about using cheats before saving a game; ignored on mobile">;
+                        bool            allTaxisHaveNitro <comment="causes taxis to bounce when the horn is pressed! (like VC)">;
+                        bool            targetIsOn <comment="not used on mobile, still works; enables/disables map marker (square on map)">;
+                        align(1);
+                        RwV2d           targetPos <comment="not used on mobile, still works; map marker coords">;
+                    }
+                } block <name="SimpleVars">;
+                break;
+    
+            case 1: /* -- BLOCK 1: SCRIPT -- */
+                struct
+                {
+                    // Nested block header
+                    char            sig[4];
+                    uint32          size;
+
+                    struct
+                    {
+                        uint32          scriptSpace <comment="number of bytes occupied by script vars">;
+                        ScriptVar       globals [scriptSpace / sizeof(ScriptVar)];
+
+                        // Nothing below is re-loaded by the game :(
+                        uint32          dataSize <comment="0x6B8">;
+                        uint32          onAMissionFlag;
+                        int32           lastMissionPassedTime;
+                        struct
+                        {
+                            DWORD           unknown <comment="0xFFFFFFFF">;
+                            DWORD           unknown <comment="0">;
+                        } collectiveArray[32];
+                        DWORD           nextFreeCollectiveIndex;
+                        struct
+                        {
+                            uint32          objectType;
+                            uint32          objectIndex;
+                            int32           newModel;
+                            int32           oldModel;
+                        } buildingSwapArray[80] <comment="building model swap information">;
+                        struct
+                        {
+                            uint32          objectType;
+                            uint32          objectIndex;
+                        } invisibilitySettingArray[52] <comment="object invisibility information; each entry marks a specific object as invisible">;
+                        bool            usingAMultiScriptFile <comment="always true on a normal game -- MAIN.SCM is compiled from multiple script files">;
+                        bool            _playerHasMetDebbieHarry <comment="VC leftover (Kaufman Cabs radio)">;
+                        align(2);
+                        uint32          mainScriptSize <comment="size of main.scm not including mission scripts">;
+                        uint32          largestMissionScriptSize <comment="size of largest mission script">;
+                        uint16          numberOfMissionScripts <comment="total number of mission scripts">;
+                        align(2);
+                        uint16          numberOfExclusiveMissionScripts <comment="number of running threads">;
+                        align(2);
+                        struct
+                        {
+                            struct CRunningScript
+                            {
+                                uint32          pNext;
+                                if (isIOS) uint32 unknown;
+                                uint32          pPrevious;
+                                if (isIOS) uint32 unknown;
+                                uint32          threadID;
+                                DWORD           unknown;
+                                char            name[8];
+                                uint32          ip;
+                                uint32          stack[16];
+                                uint16          stackPointer;
+                                align(2);
+                                ScriptVar       locals[104];
+                                uint32          timerA;
+                                uint32          timerB;
+                                DWORD           firstLocalVariableIndex;
+                                bool            isActive;
+                                bool            condResult;
+                                bool            usesMissionCleanup;
+                                bool            _waitRelated;
+                                uint32          wakeTime <comment="time to resume execution after WAIT (0001)">;
+                                uint16          logicalOp;
+                                bool            notFlag;
+                                bool            deathArrestCheckEnabled;
+                                bool            deathArrestCheckResult;
+                                bool            missionFlag;
+                                WORD            unknown;
+                                if (isIOS) {
+                                    DWORD           unknown;
+                                }
+                            } script[numberOfExclusiveMissionScripts] <optimize=false, comment="entire structure unconfirmed">;
+                        } activeScripts;
+                    } theScripts <name="TheScripts">;
+                } block <name="Script">;
+                break;
+    
+            case 2: /* -- BLOCK 2: GARAGES -- */
+                struct
+                {
+                    uint32          numGarages <comment="number of entries in garages array">;
+                    bool32          bombsAreFree <comment="bomb shop visits cost $0">;
+                    bool32          respraysAreFree <comment="spray shop visits cost $0">;
+                    uint32          carsCollected <format=binary, comment="III leftover; unused">;
+                    uint32          bankVansCollected <format=binary, comment="III leftover; unused">;
+                    uint32          policeCarsCollected <format=binary, comment="III leftover; unused">;
+                    uint32          carTypesCollected <format=binary, comment="love media cars collected (garage type 8)">;
+                    uint32          carTypesCollected2 <format=binary, comment="VC leftover; unused">;
+                    uint32          carTypesCollected3 <format=binary, comment="VC leftover; unused">;
+                    uint32          carTypesCollected4 <format=binary, comment="VC leftover; unused">;
+                    uint32          lastTimeHelpMessage <comment="time 'GA_21' message last shown (millis elapsed since story start)">;
+                    struct
+                    {                    
+                        struct
+                        {
+                            /* Special Vehicle Properties:
+                               0x0001 = bullet-proof
+                               0x0002 = fire-proof
+                               0x0004 = explosion-proof
+                               0x0008 = collision-proof
+                               0x0010 = ??? (presumed to be melee-proof, which doesn't work)
+                               0x0020 = pop-proof
+                               0x0040 = strong
+                               0x0080 = heavy
+                               0x0100 = permanent color
+                               0x0200 = has timebomb
+                               0x0400 = tip-proof
+                               0x8000 = marked (mission vehicle, remains on map til game resets)
+                            */
+                            Vehicle         vehicleModelID <comment="model ID from default.ide">;
+                            RwV3d           location <comment="world coordinates">;
+                            RwV2d           rotation <comment="x = cos(90 + angle); y = sin(90 + angle); should be a normalized vector">;
+                            float           pitch <comment="tan(angle)">;
+                            float           handlingMultiplier <comment="seems to only apply to bikes">;
+                            DWORD           specialProperties <format=binary, comment="bitflags">;
+                            ubyte           color1 <comment="color ID from carcols.dat">;
+                            ubyte           color2 <comment="color ID from carcols.dat">;
+                            RadioStation    radio;
+                            byte            extra1 <comment="part ID from model file; -1 means no part">;
+                            byte            extra2 <comment="part ID from model file; -1 means no part">;
+                            align(3);
+                        } storedCar[48] <optimize=false, comment="size 48 leftover from VC">;
+                    } carsInSafeHouse;
+                    struct
+                    {
+                        struct
+                        {
+                            if (isPS2)
+                            {
+                                GarageType      type <comment="can't change garage type; overriden by script">;
+                                GarageState     state;
+                                ubyte           maxCarsAllowed <comment="4 is max and default (changeable)">;
+                                BYTE            unknown03;
+                                bool32          closingWithoutTargetCar;
+                                bool32          deactivated;
+                                bool32          resprayHappened;
+                                int32           door1PoolIndex;
+                                int32           door2PoolIndex;
+                                DWORD           pDoor1Object;
+                                DWORD           pDoor2Object;
+                                DWORD           unknown;
+                                bool32          isDoor1Dummy;
+                                bool32          isDoor2Dummy;
+                                bool32          recreateDoorsNextRefresh;
+                                bool32          rotatingDoor <comment="opcode 03C0">;
+                                bool32          cameraFollowsPlayer <comment="opcode 03DF">;
+                                RwV3d           location;
+                                Quaternion      rotation;
+                                float           ceilingZ;
+                                DWORD           unknown;
+                                DWORD           unknown;
+                                DWORD           unknown;
+                                DWORD           unknown;
+                                DWORD           unknown;
+                                DWORD           unknown;
+                                DWORD           unknown;
+                                float           doorCurrentHeight <comment="relative to base">;
+                                float           doorMaxHeight <comment="relative to base">;
+                                float           x1;
+                                float           x2;
+                                float           y1;
+                                float           y2;
+                                DWORD           unknown;
+                                DWORD           unknown;
+                                float           doorPos;
+                                float           doorHeight;
+                                float           door1X;
+                                float           door1Y;
+                                float           door2X;
+                                float           door2Y;
+                                float           door1Z;
+                                float           door2Z;
+                                uint32          timer;
+                                DWORD           unknownB8[18];
+                            }
+                            else if (isPSP)
+                            {
+                                GarageType      type <comment="can't change garage type; overriden by script">;
+                                GarageState     state;
+                                ubyte           maxCarsAllowed <comment="4 is max and default (changeable)">;
+                                byte            unknown03;
+                                bool            closingWithoutTargetCar;
+                                bool            deactivated;
+                                bool            resprayHappened;
+                                byte            unknown07;
+                                DWORD           unknown08;
+                                DWORD           pDoor1Object;
+                                DWORD           pDoor2Object;
+                                BYTE            door1PoolIndex;
+                                BYTE            door2PoolIndex;
+                                bool            isDoor1Dummy;
+                                bool            isDoor2Dummy;
+                                bool            recreateDoorsNextRefresh;
+                                bool            rotatingDoor <comment="opcode 03C0">;
+                                bool            cameraFollowsPlayer <comment="opcode 03DF">;
+                                byte            collectedCarsState;
+                                RwV3d           location;
+                                Quaternion      rotation;
+                                float           ceilingZ;
+                                DWORD           unknown;
+                                DWORD           unknown;
+                                DWORD           unknown;
+                                DWORD           unknown;
+                                DWORD           unknown;
+                                DWORD           unknown;
+                                float           doorCurrentHeight <comment="relative to base">;
+                                float           doorMaxHeight <comment="relative to base">;
+                                float           x1;
+                                float           x2;
+                                float           y1;
+                                float           y2;
+                                DWORD           unknown;
+                                DWORD           unknown;
+                                float           doorPos;
+                                float           doorHeight;
+                                float           door1X;
+                                float           door1Y;
+                                float           door2X;
+                                float           door2Y;
+                                float           door1Z;
+                                float           door2Z;
+                                uint32          timer;
+                                DWORD           unknown98[18];
+                            }
+                            else if (isAndroid || isIOS)
+                            {
+                                DWORD           pDoor1Object;
+                                DWORD           unknown04;
+                                DWORD           pDoor2Object;
+                                DWORD           unknown0C;
+                                DWORD           unknown10[20] <comment="CEntity? useless in save">;
+                                DWORD           unknown60;
+                                RwV3d           position;
+                                Quaternion      rotation <comment="i think">;
+                                float           ceilingZ;
+                                DWORD           unknown;
+                                float           doorCurrentHeight <comment="relative to base">;
+                                float           doorMaxHeight <comment="relative to base">;
+                                float           x1;
+                                float           x2;
+                                float           y1;
+                                float           y2;
+                                DWORD           unknown;
+                                float           doorPos;
+                                float           doorHeight;
+                                float           door1X;
+                                float           door1Y;
+                                float           door2X;
+                                float           door2Y;
+                                float           door1Z;
+                                float           door2Z;
+                                uint32          timer;
+                                GarageType      type <comment="can't change garage type; overriden by script">;
+                                GarageState     state;
+                                ubyte           maxCarsAllowed <comment="4 is max and default (changeable)">;
+                                BYTE            unknownCB;
+                                bool            closingWithoutTargetCar;
+                                bool            deactivated;
+                                bool            resprayHappened;
+                                BYTE            door1PoolIndex;
+                                BYTE            door2PoolIndex;
+                                bool            isDoor1Dummy;
+                                bool            isDoor2Dummy;
+                                bool            recreateDoorsNextRefresh;
+                                bool            rotatingDoor <comment="opcode 03C0">;
+                                bool            cameraFollowsPlayer <comment="opcode 03DF">;
+                                byte            collectedCarsState;
+                                BYTE            unknownD7;
+                                BYTE            unknownD8;
+                                BYTE            unknownD9;
+                                BYTE            unknownDA;
+                                BYTE            unknownDB;
+                                BYTE            unknownDC;
+                                BYTE            unknownDD;
+                                BYTE            unknownDE;
+                                BYTE            unknownDF;
+                            }
+                        } garage[32] <optimize=false, comment="a lot of stuff in here can't be changed because it is overriden by the script at load time; size 32 leftover from VC">;
+                    } garages;
+                    BYTE            unknown[344] <comment="padding? looks like garbage/zeros">;
+                } block <name="Garages">;
+                break;
+    
+            case 3:  /* -- BLOCK 3: PLAYER -- */
+                struct
+                {
+                    if (isPS2) {
+                        /* This block has some weird-ass alignment */
+                        int32           money;
+                        DWORD           unknown;
+                        BYTE            unknown <comment="align">;
+                        BYTE            unknown <comment="align">;
+                        BYTE            unknown <comment="align">;
+                        float           unknown <comment="1">;
+                        int32           moneyOnScreen;
+                        DWORD           hiddenPackagesFound <comment="changing this has no effect">;
+                        DWORD           unknown <comment="3">;
+                        bool32          neverGetsTired <comment="flag also set at global var $0215">;
+                        bool32          fastReload <comment="VC leftover; still works">;
+                        bool32          fireProof <comment="flag also set at global var $0216">;
+                        ubyte           maxHealth <comment="125 flag set at $0276, 150 at $0443">;
+                        ubyte           maxArmor <comment="150 flag set at global var $0214">;
+                        bool32          getOutOfJailFree <comment="works once; flag also set at $0262 (Staunton Avenging Angels complete)">;
+                        bool32          freeHealthcare <comment="works once">;
+                        bool            canDoDriveBy <comment="not sure if this works or what this is even supposed to do">;
+                        BYTE            unknown <comment="align (presumed)">;
+                        BYTE            unknown <comment="align (presumed)">;
+                        DWORD           unknown0[87];
+                        
+                    }
+                    else if (isPSP)
+                    {
+                        /* This block has some weird-ass alignment */
+                        int32           money;
+                        DWORD           unknown <comment="fades and advances clock 12 hrs; 1 = white fade, 2 = black fade">;
+                        BYTE            unknown <comment="align">;
+                        BYTE            unknown <comment="align">;
+                        BYTE            unknown <comment="align">;
+                        float           unknown <comment="1">;
+                        int32           moneyOnScreen;
+                        DWORD           hiddenPackagesFound;
+                        DWORD           unknown <comment="3">;
+                        bool            neverGetsTired;
+                        bool            fastReload <comment="VC leftover; still works">;
+                        bool            fireProof;
+                        ubyte           maxHealth;
+                        ubyte           maxArmor;
+                        bool            getOutOfJailFree <comment="works once">;
+                        bool            freeHealthCare <comment="works once">;
+                        bool            canDoDriveBy <comment="not sure if this works or what this is even supposed to do">;
+                        BYTE            unknown <comment="align (presumed)">;
+                        DWORD           unknown0[83];
+                    }
+                    else /* if (isIOS || isAndroid) */
+                    {
+                        DWORD           playerName[32] <comment="useless">;
+                        int32           money;
+                        DWORD           wastedBustedTime;
+                        int32           visibleMoney;
+                        DWORD           collectedPackages <comment="changing this has no effect">;
+                        DWORD           totalPackages <comment="3?">;
+                        float           _unused94 <comment="1">;
+                        int16           _unknown_someBustedCount <comment="useless">;
+                        int16           carDensityInZone <comment="useless">;
+                        ubyte           maxHealth <comment="125 flag set at $277, 150 at $444">;
+                        ubyte           maxArmor <comment="150 flag set at global var $215">;
+                        byte            wastedBustedState;
+                        byte            _unknown_someBustedState <comment="probably useless">;
+                        bool            infiniteSprint <comment="flag also set at global var $216">;
+                        bool            fastReload <comment="VC leftover; still works">;
+                        bool            fireProof <comment="opcode 0562, flag also set at global var $217">;
+                        bool            getOutOfJailFree <comment="opcode 0418, works once; flag also set at $263 (Staunton Avenging Angels complete)">;
+                        bool            getOutOfHospitalFree <comment="opcode 0419, works once">;
+                        bool            _unknown_deliveryMissionFlag <comment="opcode 0506, useless">;
+                        align(2);
+                    }
+                } block <name="PlayerInfo">;
+                break;
+    
+            case 4:  /* -- BLOCK 4: STATS -- */
+                struct
+                {
+                    uint32          peopleKilledByPlayer;
+                    uint32          peopleKilledByOthers;
+                    uint32          carsExploded;
+                    uint32          boatsExploded;
+                    uint32          tyresPopped;
+                    uint32          roundsFiredByPlayer;
+                    struct
+                    {
+                        uint32          pedType0Wasted <comment="PLAYER1; suicide count">;
+                        uint32          pedType1Wasted <comment="PLAYER2">;
+                        uint32          pedType2Wasted <comment="PLAYER3">;
+                        uint32          pedType3Wasted <comment="PLAYER4">;
+                        uint32          pedType4Wasted <comment="CIVMALE">;
+                        uint32          pedType5Wasted <comment="CIVFEMALE">;
+                        uint32          pedType6Wasted <comment="COP">;
+                        uint32          pedType7Wasted <comment="GANG1 (MAFIA LEONE)">;
+                        uint32          pedType8Wasted <comment="GANG2 (TRIAD)">;
+                        uint32          pedType9Wasted <comment="GANG3 (DIABLO)">;
+                        uint32          pedType10Wasted <comment="GANG4 (YAKUZA)">;
+                        uint32          pedType11Wasted <comment="GANG5 (YARDIE)">;
+                        uint32          pedType12Wasted <comment="GANG6 (COLUMBIAN)">;
+                        uint32          pedType13Wasted <comment="GANG7 (HOOD)">;
+                        uint32          pedType14Wasted <comment="GANG8 (MAFIA FORELLI)">;
+                        uint32          pedType15Wasted <comment="GANG9 (MAFIA SINDACCOS)">;
+                        uint32          pedType16Wasted <comment="EMERGENCY">;
+                        uint32          pedType17Wasted <comment="FIREMAN">;
+                        uint32          pedType18Wasted <comment="CRIMINAL">;
+                        uint32          pedType19Wasted <comment="(additional peds)">;
+                        uint32          pedType20Wasted <comment="PROSTITUTE">;
+                        uint32          pedType21Wasted <comment="SPECIAL">;
+                        uint32          pedType22Wasted <comment="(additional peds)">;
+                    } pedsKilledOfThisType <comment="peds of each type killed by player (totals to 'peopleKilledByPlayer')">;
+                    uint32          helisDestroyed;
+                    float           progressMade;
+                    float           totalProgressInGame;
+                    uint32          kgsOfExplosivesUsed;
+                    uint32          bulletsThatHit;
+                    uint32          carsCrushed;
+                    uint32          headsPopped;
+                    uint32          wantedStarsAttained;
+                    uint32          wantedStarsEvaded;
+                    uint32          timesArrested;
+                    uint32          timesDied;
+                    uint32          daysPassed;
+                    uint32          safeHouseVisits;
+                    uint32          sprayings;
+                    float           maximumJumpDistance;
+                    float           maximumJumpHeight;
+                    uint32          maximumJumpFlips;
+                    uint32          maximumJumpSpins;
+                    StuntJump       bestStuntJump;
+                    uint32          numberOfUniqueJumpsFound;
+                    uint32          totalNumberOfUniqueJumps;
+                    uint32          missionsGiven;
+                    uint32          passengersDroppedOffWithTaxi;
+                    uint32          moneyMadeWithTaxi;
+                    bool32          industrialPassed;
+                    bool32          commercialPassed;
+                    bool32          suburbanPassed;
+                    bool32          pamphletMissionPassed <comment="VC leftover (Dildo Dodo flyers); still works in LCS">;
+                    bool32          _noMoreHurricanes <comment="VC leftover; unused">;
+                    float           distanceTravelledOnFoot <comment="meters">;
+                    float           distanceTravelledByCar <comment="meters">;
+                    float           distanceTravelledByBike <comment="meters">;
+                    float           distanceTravelledByBoat <comment="meters">;
+                    float           _distanceTravelledByPlane <comment="meters; unused/ignored">;
+                    uint32          livesSavedWithAmbulance;
+                    uint32          criminalsCaught;
+                    uint32          firesExtinguished;
+                    uint32          highestLevelVigilanteMission;
+                    uint32          highestLevelAmbulanceMission;
+                    uint32          highestLevelFireMission;
+                    uint32          photosTaken;
+                    uint32          numberKillFrenziesPassed;
+                    uint32          maxSecondsOnCarnageLeft;
+                    uint32          maxKillsOnRcTriad;
+                    uint32          totalNumberKillFrenzies;
+                    uint32          totalNumberMissions;
+                    uint32          timesDrowned;
+                    uint32          seagullsKilled <comment="VC leftover; still works">;
+                    float           weaponBudget;
+                    uint32          _loanSharks <comment="VC leftover; unused; causes blank spot to show up in stats with value always '0'">;
+                    uint32          _movieStunts <comment="VC leftover; unused; causes blank spot to show up in stats with value always '0 out of 0'">;
+                    float           pizzasDelivered;
+                    float           noodlesDelivered;
+                    float           moneyMadeFromTourist;
+                    float           touristsTakenToSpots;
+                    uint32          _garbagePickups <comment="VC leftover (despite there being a garbage mission in LCS); unused; causes blank spot to show up in stats with value always '0'">;
+                    uint32          _iceCreamSold <comment="VC leftover; unused; causes blank spot to show up in stats with value always '0'">;
+                    uint32          _topShootingRangeScore <comment="VC leftover; unused; causes blank spot to show up in stats with value always '0'">;
+                    uint32          _shootingRank <comment="VC leftover; unused; causes blank spot to show up in stats with value always '0'">;
+                    float           topScrapyardChallengeScore;
+                    float           top9mmMayhemScore;
+                    float           topScooterShooterScore;
+                    float           topWichitaWipeoutScore <comment="AWOL Angel">;
+                    uint32          longestWheelie;
+                    uint32          longestStoppie;
+                    uint32          longest2Wheel;
+                    float           longestWheelieDist <comment="meters">;
+                    float           longestStoppieDist <comment="meters">;
+                    float           longest2WheelDist <comment="meters">;
+                    float           longestFacePlantDist <comment="meters">;
+                    float           autoPaintingBudget;
+                    uint32          propertyDestroyed;
+                    uint32          _numPropertyOwned <comment="VC leftover; unused; causes blank spot to show up in stats with the correct value">;
+                    /* 0x0001 = Casual clothes
+                       0x0002 = Leone's suit
+                       0x0004 = Overalls
+                       0x0008 = Avenging Angels' fatigues
+                       0x0010 = Chauffeur's clothes
+                       0x0020 = Lawyer's suit
+                       0x0040 = Tuxedo
+                       0x0080 = 'The King' jumpsuit
+                       0x0100 = Cox Mascot suit
+                       0x0200 = Underwear
+                       0x0400 = Hero garb
+                       0x0800 = 'Dragon' jumpsuit
+                       0x1000 = Antonio
+                       0x2000 = Sweats
+                       0x4000 = Goodfella
+                       0x8000 = Wiseguy
+                    */
+                    uint16          unlockedCostumes <format=binary, comment="doesn't actually unlock outfits, just shows them in stats">;
+                    uint32          _bloodringKills <comment="VC leftover; unused; causes blank spot to show up in stats with the correct value">;
+                    uint32          _bloodringTime  <comment="VC leftover; unused; causes blank spot to show up in stats with the correct value">;
+                    ubyte           _propertyOwned[15] <comment="VC leftover; unused/ignored">;
+                    float           highestChaseValue <comment="media attention level, same values as VC">;
+                    uint32          _fastestTimes[23] <comment="VC leftover; unused; causes blank spots to show up in stats with the correct value">;
+                    uint32          _highestScores[5] <comment="VC leftover; unused; causes blank spots to show up in stats with the correct value">;
+                    uint32          _bestPositions <comment="VC leftover; unused; causes blank spots to show up in stats with the correct value; default value = 0x7FFFFFFF">;
+                    uint32          killsSinceLastCheckpoint <comment="always 0 on save -- saving the game counts as a checkpoint, thus resetting this field; does not show in stats">;
+                    uint32          totalLegitimateKills <comment="used to calcuate criminal rating (I think); doesn't show in stats">;
+                    char            lastMissionPassedName[8] <comment="GXT key">;
+                    uint32          cheatedCount;
+                    uint32          carsSold;
+                    uint32          moneyMadeWithCarSales;
+                    uint32          bikesSold;
+                    uint32          moneyMadeWithBikeSales;
+                    uint32          numberOfExportedCars;
+                    uint32          totalNumberOfCarExport;
+                    uint32          highestLevelSlashTv;
+                    uint32          moneyMadeWithSlashTv;
+                    uint32          totalKillsOnSlashTv;
+                    uint32          _packagesSmuggled <comment="unused/ignored (beta feature?)">;
+                    uint32          _smugglersWasted <comment="unused/ignored (beta feature?)">;
+                    uint32          _fastestSmugglingTime <comment="unused/ignored (beta feature?)">;
+                    uint32          _moneyMadeInCoach <comment="unused/ignored (beta feature?)">;
+                    uint32          cashMadeCollectingTrash;
+                    uint32          hitmenKilled;
+                    uint32          highestGuardianAngelJusticeDished;
+                    uint32          guardianAngelMissionsPassed;
+                    uint32          guardianAngelHighestLevel_Ind;
+                    uint32          guardianAngelHighestLevel_Com;
+                    uint32          guardianAngelHighestLevel_Sub;
+                    uint32          mostTimeLeftTrainRace <comment="Wong Side of the Tracks">;
+                    uint32          bestTimeGoGoFaggio <comment="bugged, doesn't show up">;
+                    uint32          dirtBikeMostAir <comment="shows up as 'Most Air Achieved'; game incorrectly saves highestTrainCashEarned here">;
+                    uint32          highestTrainCashEarned  <comment="bugged, not in stats; game incorectly saves dirtBikeMostAir here">;
+                    uint32          _fastestHeliRaceTime <comment="unused/ignored (beta feature?)">;
+                    uint32          _bestHeliRacePosition <comment="unused; shows up in stats (beta feature?); default value = 0x7FFFFFFF">;
+                    uint32          numberOutfitChanges;
+                    struct
+                    {
+                        uint32          thrashinRC;
+                        uint32          raginRC;
+                        uint32          chasinRC;
+                    } bestBanditLapTimes <comment="seconds">;
+                    struct
+                    {
+                        uint32          thrashinRC;
+                        uint32          raginRC;
+                        uint32          chasinRC;
+                    } bestBanditPositions <comment="0x7FFFFFFF means not complete">;
+                    struct
+                    {
+                        uint32          lowRiderRumble;
+                        uint32          deimosDash;
+                        uint32          wiCheetahRun;
+                        uint32          redLightRacing;
+                        uint32          torringtonTT;
+                        uint32          gangstaGP;
+                    } bestStreetRacePositions <comment="0x7FFFFFFF means not complete">;
+                    struct
+                    {
+                        uint32          lowRiderRumble;
+                        uint32          deimosDash;
+                        uint32          wiCheetahRun;
+                        uint32          redLightRacing;
+                        uint32          torringtonTT;
+                        uint32          gangstaGP;
+                    } fastestStreetRaceLapTimes <comment="seconds">;
+                    struct
+                    {
+                        uint32          lowRiderRumble;
+                        uint32          deimosDash;
+                        uint32          wiCheetahRun;
+                        uint32          redLightRacing;
+                        uint32          torringtonTT;
+                        uint32          gangstaGP;
+                    } fastestStreetRaceTimes <comment="seconds">;
+                    struct
+                    {
+                        uint32          course1;
+                        uint32          course2;
+                        uint32          course3;
+                        uint32          course4;
+                        uint32          course5;
+                        uint32          course6;
+                        uint32          course7;
+                        uint32          course8;
+                        uint32          course9;
+                        uint32          course10;
+                    } fastestDirtBikeLapTimes <comment="seconds">;
+                    struct
+                    {
+                        uint32          course1;
+                        uint32          course2;
+                        uint32          course3;
+                        uint32          course4;
+                        uint32          course5;
+                        uint32          course6;
+                        uint32          course7;
+                        uint32          course8;
+                        uint32          course9;
+                        uint32          course10;
+                    } fastestDirtBikeTimes <comment="seconds">;
+                    struct
+                    {
+                        float           headRadioListenTime;
+                        float           doubleClefFMListenTime;
+                        float           kJahListenTime;
+                        float           riseFMListenTime;
+                        float           lips106ListenTime;
+                        float           radioDelMundoListenTime;
+                        float           msx98ListenTime;
+                        float           flashbackFMListenTime;
+                        float           theLibertyJamListenTime;
+                        float           lcfrListenTime;
+                        if (isIOS || isAndroid)
+                        {
+                            float           mixTapeListenTime;
+                        }
+                    } favoriteRadioStationList <comment="milliseconds">;
+                } block <name="Stats">;
+                break;
+        }
+    } blocks[5] <optimize=false, open=true>;
+
+    // Remaining bytes
+    if (isPS2)
+    {
+        struct
+        {
+            align(FileSize() - FTell() - 4);
+        } padding;
+        uint32          checksum <read=checksum>;
+    }
+    else /* if (isPSP || isIOS || isAndroid) */
+    {
+        align(3);
+    }
+} lcsSave <name="GTA LCS Save File", open=true>;
+
+printGameInfo();
+
+/*
+ * Skips ahead n bytes in the file.
+ */
+void align(int n)
+{
+    FSkip(n);
+}
+
+/*
+ * Sets flags indicating whether the save is an iOS, Android, or PS2 save file.
+ * Currently unable to detect PSP saves (due to encryption).
+ *
+ * Returns 0 if platform detection succeeded.
+ */
+int determinePlatform()
+{
+    local int SIMP_SIZE_PS2              = 0xF8;
+    local int SIMP_SIZE_PSP              = 0xBC;
+    local int RUNNINGSCRIPT_SIZE_ANDROID = 0x21C;
+    local int RUNNINGSCRIPT_SIZE_IOS     = 0x228;
+
+    local int mark = FTell();
+    FSeek(0);
+
+    // Determine platform by size of SIMP block
+    local int simpSize = ReadInt(0x04);
+    if (simpSize == SIMP_SIZE_PS2)
+    {
+        isPS2 = 1;
+        FSeek(mark);
+        return 1;
+    }
+    else if (simpSize == SIMP_SIZE_PSP)
+    {
+        isPSP = 1;
+        FSeek(mark);
+        return 1;
+    }
+
+    // Distinguish iOS and Android by size of RunningScript
+    FSkip(simpSize + 0x0C);
+    local int srptSize = ReadInt();
+    local int srptOffset = FTell();
+
+    FSkip(0x08);
+    local int scrSize = ReadInt();
+
+    FSkip(0x04);
+    local int scriptVarSpaceSize = ReadInt();
+
+    FSkip(scriptVarSpaceSize + 0x04);
+    local int unknownBlockSize = ReadInt();
+
+    FSkip(unknownBlockSize + 0x04 + 260); // Add 260 for empty structure after "unknown" block
+    local int numRunningScripts = ReadInt();
+    local int sizeOfRunningScript = (srptSize + srptOffset - FTell()) / numRunningScripts;
+
+    if (sizeOfRunningScript == RUNNINGSCRIPT_SIZE_ANDROID)
+    {
+        isAndroid = 1;
+        FSeek(mark);
+        return 1;
+    }
+    else if (sizeOfRunningScript == RUNNINGSCRIPT_SIZE_IOS)
+    {
+        isIOS = 1;
+        FSeek(mark);
+        return 1;
+    }
+    
+    FSeek(mark);
+    return 0;
+}
+
+string checksum(int oldSum)
+{
+    local int checksumOffset = 0;
+    local uint32 newSum;
+    local string newSumString;
+
+    checksumOffset = FileSize() - 4;
+
+    newSum = Checksum(CHECKSUM_BYTE, 0, checksumOffset);
+    if (newSum != oldSum)
+    {
+        WriteUInt(checksumOffset, newSum);
+    }
+
+    SPrintf(newSumString, "%d", (uint32) newSum);
+    return newSumString;
+}
+
+void printGameInfo()
+{
+    Printf("Last mission passed: %s\n", lcsSave.blocks[4].block.lastMissionPassedName);
+    local float progressMade = lcsSave.blocks[4].block.progressMade;
+    local float totalProgressInGame = lcsSave.blocks[4].block.totalProgressInGame;
+    Printf("Game progress: %.02f%%\n", (progressMade / totalProgressInGame) * 100.0);
+}
+
+string displayGlobal(ScriptVar& v)
+{
+    string s;
+    SPrintf(s, "0x%x (%0.3f)\n", v.iValue, v.fValue);
+    return s;
+}

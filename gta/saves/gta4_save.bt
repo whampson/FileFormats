@@ -1,0 +1,410 @@
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// -=- 010 Editor Binary Template =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//
+//    File: gta4_save.bt
+//  Author: Wes Hampson (thehambone)
+// Purpose: GTA4 save file format.
+// Updated: 4 April 2020
+//
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+enum <byte> Bool
+{
+    FALSE_,
+    TRUE_
+};
+
+enum <uint32> Bool32
+{
+    FALSE__,
+    TRUE__
+};
+
+struct BlockHeader
+{
+    SetBackColor(cLtGreen);
+    SetForeColor(cWhite);
+
+    char tag[5] <comment="BLOCK">;
+    uint32 size;
+    if(tag != "BLOCK")
+    {
+        Warning("Invalid BLOCK tag!");
+        return -1;
+    }
+
+    SetBackColor(cNone);
+    SetForeColor(cNone);
+};
+
+struct Vector3
+{
+  float X,Y,Z;
+};
+
+local int l_isPS3 = 0;
+local int l_isXbox360 = 0;
+local int l_isWindows = 0;
+DetectPlatform();
+
+if (l_isXbox360 || l_isPS3) {
+    BigEndian();
+}
+else {
+    LittleEndian();
+}
+
+struct Header
+{
+    uint32      saveVersion;
+    uint32      saveSizeInBytes;
+    uint32      scriptSpace; //maybe
+    char        tag[4] <comment="SAVE">;
+    if (l_isWindows) {
+        wchar_t     lastMissionPassedName[128];
+    }
+} header;
+
+struct Block0
+{
+    BlockHeader header;
+    struct {
+        uint32      closestSafehouseIndex;
+        Bool        fadeInAfterLoad;
+        byte        __align0[3];
+        DWORD       _unknown_04h;
+        DWORD       _unknown_08h;
+        Vector3     cameraPosition;
+        DWORD       _unknown_1Ch;       // vector W?
+        uint32      millisecondsPerGameMinute;
+        uint32      lastClockTick;
+        uint32      gameClockMonths;
+        uint32      gameClockDays;
+        uint32      gameClockHours;
+        uint32      gameClockMinutes;
+        uint32      gameClockDayOfWeek;
+        Bool        hasPlayerCheated;
+        byte        __align1[3];
+        uint32      timeInMilliseconds;
+        uint32      frameCounter;
+        int32       oldWeatherType;
+        int32       newWeatherType;
+        int32       forcedWeatherType;
+        float       weatherInterpolationValue;
+        uint32      weatherTypeInList;
+        float       rain;
+        uint32      cameraCarZoomIndicator;
+        uint32      cameraPedZoomIndicator;
+        DWORD       cameraGunZoomIndicator;
+        DWORD       _unknown_6Ch;
+        DWORD       _unknown_70h;
+        DWORD       _unknown_74h;       // not written on PC
+        DWORD       _unknown_78h;       // not written on PC
+        DWORD       _unknown_7Ch;       // not written on PC
+        uint32      maximumWantedLevel;
+        uint32      maximumChaos;
+        DWORD       _unknown_88h;       // not written on PC
+        DWORD       _unknown_8Ch;
+        byte        _unknown_90h;
+        byte        __align2[3];
+        uint32      targetMarkerHandle;
+        byte        _unknown_98h;
+        byte        __align3[3];
+        DWORD       _unknown_9Ch;       // not written on PC
+        DWORD       _unknown_A0h;
+        DWORD       _unknown_A4h;
+        DWORD       _unknown_A8h;       // not written on PC
+        DWORD       _unknown_ACh;       // not written on PC
+    } SimpleVars;
+} block0 <name="SimpleVars">;
+
+struct Block1
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block1 <name="PlayerInfo">;
+
+struct Block2
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block2 <name="ExtraContent">;
+
+struct Block3
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block3 <name="Scripts">;
+
+struct Block4
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block4 <name="Garages">;
+
+struct Block5
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block5 <name="GameLogic">;
+
+struct Block6
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block6 <name="Paths">;
+
+struct Block7
+{
+    BlockHeader header;
+    int         numPickups;
+    struct Pickup {
+        int32       index;
+        DWORD       _unknown_04h;
+        DWORD       _unknown_08h;
+        DWORD       amount;
+        DWORD       _unknown_10h;
+        DWORD       _unknown_14h;
+        int32       blip;
+        DWORD       timer;
+        Vector3     position;
+        DWORD       _unknown_2Ch;
+        DWORD       _unknown_30h;
+        Vector3     rotation;
+        DWORD       _unknown_40h;
+        enum <int16> {
+            TLAD_SEAGULL = 0x1AF,
+            BOGT_SEAGULL = 0x574,
+            IV_PIGEON    = 0x8DC
+        } objectId;
+        int16       refNum;
+        enum <byte> {
+            HIDDEN_PACKAGE = 3
+        } pickupType;
+        byte        flags <format=binary>;
+        byte        flags2 <format=binary>;
+        byte        _unknown_4Bh;
+        DWORD       _unknown_4Ch;
+        DWORD       _unknown_50h;
+    } pickups[650];
+    byte        weaponPickupMessageCountRemaining;
+    DWORD       _unknown;
+} block7 <name="Pickups">;
+
+struct Block8
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block8 <name="RestartPoints">;
+
+struct Block9
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block9 <name="RadarBlips">;
+
+struct Block10
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block10 <name="Zones">;
+
+struct Block11
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block11 <name="GangData">;
+
+struct Block12
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block12 <name="CarGenerators">;
+
+struct Block13
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block13 <name="Stats">;
+
+struct Block14
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block14 <name="IplStore">;
+
+struct Block15
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block15 <name="StuntJumps">;
+
+struct Block16
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block16 <name="Radio">;
+
+struct Block17
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block17 <name="Objects">;
+
+struct Block18
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)];
+} block18 <name="Relationships">;
+
+struct Block19
+{
+    BlockHeader header;
+    byte        _data[header.size - sizeof(header)]; // empty (PC), contains stuff on PS3
+} block19 <name="Inventory">;
+
+struct Block20
+{
+    BlockHeader header;
+    // Empty
+} block20 <name="Pools">;
+
+struct Block21
+{
+    BlockHeader header;
+    // Empty
+} block21 <name="PhoneInfo">;
+
+struct Block22
+{
+    BlockHeader header;
+    // Empty
+} block22 <name="AudioScriptObjects">;
+
+struct Block23
+{
+    BlockHeader header;
+    // Empty
+} block23 <name="SetPieces">;
+
+struct Block24
+{
+    BlockHeader header;
+    // Empty
+} block24 <name="Streaming">;
+
+struct Block25
+{
+    BlockHeader header;
+    // Empty
+} block25 <name="PedTypeInfo">;
+
+struct Block26
+{
+    BlockHeader header;
+    // Empty
+} block26 <name="Tags">;
+
+struct Block27
+{
+    BlockHeader header;
+    // Empty
+} block27 <name="Shopping">;
+
+struct Block28
+{
+    BlockHeader header;
+    // Empty
+} block28 <name="GangWars">;
+
+struct Block29
+{
+    BlockHeader header;
+    // Empty
+} block29 <name="EntryExits">;
+
+struct Block30
+{
+    BlockHeader header;
+    // Empty
+} block30 <name="3dMarkers">;
+
+struct Block31
+{
+    BlockHeader header;
+    // Empty
+} block31 <name="Vehicles">;
+
+if (l_isPS3)
+{
+    struct Block32
+    {
+        BlockHeader header;
+        // Empty
+    } block32;
+}
+
+// Checksum
+DWORD   checkSum <read=UpdateChecksum>;
+
+    
+struct Footer
+{
+    char        tag[4] <comment="END">;
+    if (l_isWindows) {
+        // GFWL stuff
+        WORD        _unknown_00h;
+        byte        _unknown_02h[10];
+        if (_unknown_00h == 0x128) {
+            // More GFWL stuff if not Xliveless save
+            byte    _unknown_10h[284];
+            byte    _unknown_12Ch[64];
+        }
+    }
+} footer;
+
+void DetectPlatform()
+{
+    local int l_versionBE, l_versionLE;
+    local int l_blockCount;
+    local TFindResults l_results;
+
+    LittleEndian();
+    l_versionLE = ReadInt(0);
+    BigEndian();
+    l_versionBE = ReadInt(0);
+
+    l_results = FindAll("BLOCK");
+    l_blockCount = l_results.count;
+    Printf("Block count: %d\n", l_blockCount);
+
+    if (l_versionLE == 57 && l_blockCount == 32) {
+        Printf("Platform: Windows\n");
+        l_isWindows = 1;
+        return;
+    }
+    else if (l_versionBE == 56 && l_blockCount == 32) {
+        Printf("Platform: Xbox 360\n");
+        l_isXbox360 = 1;
+        return;
+    }
+    else if (l_versionBE == 56 && l_blockCount == 33) {
+        l_isPS3 = 1;
+        Printf("Platform: PlayStation 3\n");
+        return;
+    }
+    
+    Warning("Unknown file type!");
+    return;
+}
+
+string UpdateChecksum(int oldChecksum)
+{
+    local uint32 l_checksum;
+    local string l_checksumString;
+
+    // TODO:
+
+    SPrintf(l_checksumString, "%d", oldChecksum);
+    return l_checksumString;
+}

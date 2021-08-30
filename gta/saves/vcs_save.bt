@@ -1,0 +1,383 @@
+/*------------------------------------------------
+ * --- 010 Editor v10.0 Binary Template ---
+ *
+ *      File: vcs_save.bt
+ *    Author: thehambone
+ *   Purpose: Documenation of the GTA:VCS save file format.
+ *   Updated: 28 July 2020
+ *------------------------------------------------*/
+
+/*=============================================*
+ *================== Typedefs =================*
+ *=============================================*/
+
+typedef enum <BYTE>
+{
+    FALSE_8, TRUE_8
+} bool;
+
+typedef enum <WORD>
+{
+    FALSE_16, TRUE_16
+} bool16;
+
+typedef enum <DWORD>
+{
+    FALSE_32, TRUE_32
+} bool32;
+
+typedef struct
+{
+    float x, y;
+} Vector2D;
+
+typedef struct
+{
+    float x, y, z;
+} Vector;
+
+typedef struct
+{
+    float rx, ry, rz, rw;
+} Quaternion;
+
+typedef union
+{
+    float       fValue;
+    int32       iValue;
+} ScriptVar;
+
+enum <int16> WeatherType
+{
+    WEATHER_SUNNY,
+    WEATHER_CLOUDY,
+    WEATHER_RAINY,
+    WEATHER_FOGGY,
+    WEATHER_EXTRA_SUNNY,
+    WEATHER_HURRICANE,
+    WEATHER_EXTRA_COLOURS,
+    WEATHER_ULTRA_SUNNY
+};
+
+enum <uint32> RadarMode
+{
+    MAP_AND_BLIPS,
+    BLIPS_ONLY,
+    RADAR_OFF
+};
+
+
+/*=============================================*
+ *============= Platform Detection ============*
+ *=============================================*/
+
+local int IsPS2 = 0;
+local int IsPSP = 0;
+if (!DetectPlatform())
+{
+    Printf("Invalid save file - unable to determine file origin!\n");
+    return;
+}
+
+
+/*=============================================*
+ *=========== Save File Structure =============*
+ *=============================================*/
+
+Printf("----- Savefile Info -----\n");
+Printf("Platform: ");
+if (IsPS2) Printf("PS2\n");
+if (IsPSP) Printf("PSP\n");
+
+/** ========== BLOCK 0: SimpleVars ========== **/
+
+struct
+{
+    char tag[4] <comment="SIMP">;
+    uint32 size;
+
+    struct SimpleVariables
+    {
+        uint32          _unused00;
+        uint32          _three <comment="constant 3">;
+        uint32          currentLevel;
+        uint32          currentArea;
+        uint32          prefsLanguage;
+        uint32          millisecondsPerGameMinute;
+        uint32          lastClockTick;
+        ubyte           gameClockHours;
+        ubyte           gameClockMinutes;
+        uint16          _gameClockSeconds;
+        uint32          totalTimePlayedInMilliseconds;
+        float           timeScale;
+        float           timeStep;
+        float           timeStepNonClipped;
+        float           framesPerUpdate;
+        uint32          frameCounter;
+        WeatherType     oldWeatherType;
+        WeatherType     newWeatherType;
+        WeatherType     forcedWeatherType;
+        FSkip(2);       // align
+        uint32          weatherTypeInList;
+        float           interpolationValue;
+        Vector          cameraPosition;
+        float           prefsVehicleCameraMode;
+        float           prefsPlayerCameraMode;
+        uint32          extraColor;
+        bool32          isExtraColorOn;
+        float           extraColorInterpolation;
+        uint32          prefsBrightness <comment="PSP min/max = 128/384; PS2 min/max = 140/436">;
+        bool            prefsDisplayHud;
+        bool            prefsShowSubtitles;
+        FSkip(2);       // align
+        RadarMode       radarMode;
+        if (IsPSP)
+        {
+            bool            blurOn <comment="0 makes the game look much more vibrant">;
+            FSkip(3);       // align
+            uint32          prefsMusicVolume <comment="min/max = 0/127">;;
+            uint32          prefsSfxVolume <comment="min/max = 0/127">;;
+            byte            _prefsRadioStation;
+            byte            _prefsOutput;
+            FSkip(2);       // align
+            DWORD           _unused84[9];
+            uint16          padMode <comment="0 = setup2, 2 = setup1">;
+            bool            invertLookOff;
+            bool            swapNippleAndDPad;
+            bool            hasPlayerCheated;
+            bool            allTaxisHaveNitro;
+            bool            targetIsOn;
+            FSkip(1);       // align
+            Vector2D        targetPos;
+            DWORD           unknownB8;
+            Vector          playerPos <comment="overridden by script, can't change spawn point">;
+        }
+        else if (IsPS2)
+        {
+            bool32          blurOn <comment="0 makes the game look much more vibrant">;
+            DWORD           unknown78;
+            DWORD           unknown7C;
+            bool32          prefsUseWideScreen;
+            uint32          prefsMusicVolume <comment="min/max = 0/127">;;
+            uint32          prefsSfxVolume <comment="min/max = 0/127">;;
+            byte            _prefsRadioStation;
+            byte            _prefsOutput;
+            FSkip(2);       // align
+            DWORD           unknown90;
+            FSkip(9 * 4);   // unused
+            uint16          padMode <comment="0 = setup1, 1 = setup2">;
+            FSkip(2);       // align
+            bool32          invertLookOff;
+            bool            useVibration;
+            FSkip(3);       // align
+            bool32          hasPlayerCheated;
+            bool32          allTaxisHaveNitro;
+            bool            targetIsOn;
+            FSkip(3);       // align
+            Vector2D        targetPos;
+            BYTE            unknownD8;
+            BYTE            unknownD9;
+            FSkip(2);       // align
+            Vector          playerPos <comment="overridden by script, can't change spawn point">;
+            bool32          trailsOn;
+            struct Date
+            {
+                uint32      second;
+                uint32      minute;
+                uint32      hour;
+                uint32      day;
+                uint32      month;
+                uint32      year;
+            } TimeStamp;
+        }
+        //FSeek(Align4(size + 8));
+    } simpleVars <name="SimpleVars">;
+} block0 <open=true>;
+
+
+/** ========== BLOCK 1: Scripts ========== **/
+
+struct
+{
+    char tag[4] <comment="SRPT">;
+    uint32 size;
+
+    local int scriptsPos = FTell();
+    struct Scripts
+    {
+        char            tag[4] <comment="SCR">;
+        uint32          size;
+    
+        struct TheScripts
+        {
+            uint32          scriptSpace;
+            ScriptVar       scriptVars[scriptSpace / sizeof(ScriptVar)];
+    
+            // nothing that follows is loaded by the game
+            uint32          dataSize <comment="0x6B8">;
+            uint32          onAMissionFlag;
+            int32           lastMissionPassedTime <comment="maybe, looks unused">;
+            struct
+            {
+                uint32          objectType;
+                uint32          objectIndex;
+                int32           newModel;
+                int32           oldModel;
+            } buildingSwapArray[80] <comment="unused">;
+            struct
+            {
+                uint32          objectType;
+                uint32          objectIndex;
+            } invisibilitySettingArray[52] <comment="unused">;
+            bool            usingAMultiScriptFile;
+            bool            playerHasMetDebbieHarry;
+            FSkip(2);       // align
+            uint32          mainScriptSize;
+            uint32          largestMissionScriptSize;
+            uint16          numberOfMissionScripts;
+            FSkip(2);       // align
+            uint16          numberOfExclusiveMissionScripts;
+            FSkip(2);       // align
+            struct
+            {
+                struct CRunningScript
+                {
+                    uint32          pNext;
+                    uint32          pPrevious;
+                    uint32          threadID;
+                    DWORD           unknown10;
+                    uint32          ip;
+                    uint32          stack[16];
+                    uint16          stackPointer;
+                    WORD            _align;
+                    ScriptVar       locals[103] <comment="103?">;
+                    uint32          timerA <comment="these values seem too small">;
+                    uint32          timerB;
+                    DWORD           unknown1FC;
+                    DWORD           wakeTime;
+                    DWORD           unknown204;
+                    DWORD           unknown208;
+                    BYTE            unknown20C;
+                    BYTE            unknown20D;
+                    BYTE            unknown20E;
+                    char            name[8];
+                    BYTE            unknown217 <comment="align?">;
+                } script[numberOfExclusiveMissionScripts] <optimize=false>;
+            } activeScripts;
+        } theScripts <name="TheScripts">;
+    } scripts <name="Scripts">;
+} block1 <open=true>;
+
+
+/** ========== BLOCK 2: Garages ========== **/
+
+struct
+{
+    char tag[4] <comment="GRGE">;
+    uint32 size;
+
+    struct Garages
+    {
+        FSkip(Align4(size));
+    } garages <name="Garages">;
+} block2 <open=true>;
+
+
+/** ========== BLOCK 3: PlayerInfo ========== **/
+
+struct
+{
+    char tag[4] <comment="PLYR">;
+    uint32 size;
+
+    struct PlayerInfo
+    {
+        FSkip(Align4(size));
+    } player <name="PlayerInfo">;
+} block3 <open=true>;
+
+
+/** ========== BLOCK 4: Stats ========== **/
+
+struct
+{
+    char tag[4] <comment="STAT">;
+    uint32 size;
+
+    struct Stats
+    {
+        FSkip(Align4(size));
+    } stats <name="Stats">;
+} block4 <open=true>;
+
+
+/** ========== BLOCK 5: Overflow ========== **/
+
+struct
+{
+    char tag[4] <comment="OVER">;
+    uint32 size;
+
+    struct
+    {
+        // Padding I think
+        FSkip(Align4(size));
+    } over <name="Overflow">;
+} block5 <open=true>;
+
+/** ========== Padding & Checksum ========== **/
+
+if (IsPS2)
+{
+    struct
+    {
+        FSkip(FileSize() - 4 - FTell());
+    } padding;
+
+    uint32 checksum <read=CheckSum>;
+}
+
+
+/*=======================================*
+ *=========== Handy Functions ===========*
+ *=======================================*/
+
+int DetectPlatform()
+{
+    local int simpSize = ReadInt(0x04);
+    if (simpSize == 0x104)
+    {
+        IsPS2 = 1;
+        return 1;
+    }
+    if (simpSize == 0xC8)
+    {
+        IsPSP = 1;
+        return 1;
+    }
+
+    return 0;
+}
+
+string CheckSum(int oldSum)
+{
+    local int checksumOffset = 0;
+    local uint32 newSum;
+    local string newSumString;
+
+    checksumOffset = FileSize() - 4;
+
+    newSum = Checksum(CHECKSUM_BYTE, 0, checksumOffset);
+    if (newSum != oldSum)
+    {
+        WriteUInt(checksumOffset, newSum);
+    }
+
+    SPrintf(newSumString, "%d", (uint32) newSum);
+    return newSumString;
+}
+
+int Align4(int addr)
+{
+    return (addr + 3) & 0xFFFFFFFC;
+}

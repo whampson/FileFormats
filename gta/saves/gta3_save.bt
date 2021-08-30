@@ -1,0 +1,1601 @@
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// -=- 010 Editor Binary Template =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//
+//    File: gta3_save.bt
+//  Author: thehambone
+// Purpose: Documentation of the GTA3 save file format.
+// Updated: 12 July 2020
+//
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+LittleEndian();
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Platform Detection
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+local int l_IsAndroid = 0;
+local int l_IsIOS = 0;
+local int l_IsMobile = 0;
+local int l_IsPC = 0;
+local int l_IsPS2 = 0;
+local int l_IsPS2AU = 0;
+local int l_IsPS2JP = 0;
+local int l_IsXbox = 0;
+local string l_SystemName = "";
+
+DetectPlatform();
+
+if (l_IsAndroid)
+{
+    l_SystemName = "Android";
+}
+else if (l_IsIOS)
+{
+    l_SystemName = "iOS";
+}
+else if (l_IsPC)
+{
+    l_SystemName = "PC";
+}
+else if (l_IsPS2)
+{
+    SPrintf(l_SystemName, "PS2%s",
+        (l_IsPS2AU) ? " (Australia)" : 
+        (l_IsPS2JP) ? " (Japan)" : "");
+}
+else if (l_IsXbox)
+{
+    l_SystemName = "Xbox";
+}
+else
+{
+    Printf("ERROR: Unable to determine platform! Is this a valid GTA3 save file?\n");
+    return;
+    //l_IsPC = 1;
+    //l_SystemName = "PC";
+}
+
+Printf("Detected %s save.\n", l_SystemName);
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Save Data Blocks
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+#include "gta3_types.bt"
+
+/******************************
+ * Block 0: SimpleVars
+ ******************************/
+typedef struct SimpleVariables
+{
+    if (!l_IsPS2)
+    {
+        wchar_t LastMissionPassedName[24] <comment="GXT key if first char is 0xFFFF (mobile only), this will break some older versions of the mobile game">;
+        Printf("Title: %s%s\n",  LastMissionPassedName, (LastMissionPassedName[0] == 0xFFFF) ? " (GXT Key)" : "");
+    }
+    if (l_IsPC || l_IsXbox)
+    {
+        struct SYSTEMTIME
+        {
+            uint16 Year;
+            uint16 Month;
+            uint16 DayOfWeek;
+            uint16 Day;
+            uint16 Hour;
+            uint16 Minute;
+            uint16 Second;
+            uint16 Millisecond;
+        } SaveTime;
+    }
+    uint32 SizeOfGameInBytes <comment="constant 0x31401 or 0x31400 (Japan); 0x31400 is size of save data excluding block sizes and checksum, non-Japan saves add 1 for some reason">;
+    eLevelName CurrLevel <comment="CGame">;
+    CVector CameraPosition <comment="CCamera TheCamera">;
+    uint32 MillisecondsPerGameMinute <comment="CClock">;
+    uint32 LastClockTick <comment="CClock">;
+    ubyte GameClockHours <comment="CClock">;
+    Align();
+    ubyte GameClockMinutes <comment="CClock">;
+    Align();
+    int16 CurrPadMode <comment="CPad::GetPad(0)->Mode">;
+    Align();
+    uint32 TimeInMilliseconds <comment="CTimer">;
+    float TimeScale <comment="CTimer">;
+    float TimeStep <comment="CTimer">;
+    float TimeStepNonClipped <comment="CTimer">;
+    uint32 FrameCounter <comment="CTimer">;
+    float TimeStep <comment="CTimeStep, not used">;
+    float FramesPerUpdate <comment="CTimeStep, not used">;
+    float TimeScale <comment="CTimeStep, not used">;
+    eWeatherType OldWeatherType <comment="CWeather">;
+    Align();
+    eWeatherType NewWeatherType <comment="CWeather">;
+    Align();
+    eWeatherType ForcedWeatherType <comment="CWeather">;
+    Align();
+    float InterpolationValue <comment="CWeather">;
+    if (l_IsPS2)
+    {
+        int32 PrefsMusicVolume <comment="CMenuManager">;
+        int32 PrefsSfxVolume <comment="CMenuManager">;
+        if (!l_IsPS2AU)
+        {
+            int16 CurrPadMode <comment="duplicate, removed from Australian copy">;
+            Align();
+        }
+        Bool PrefsUseVibration <comment="CMenuManager">;
+        Align();
+        Bool PrefsStereoMono <comment="CMenuManager; 0 = Stereo, 1 = Mono">;
+        Align();
+        eRadioStation PrefsRadioStation <comment="CMenuManager">;
+        Align();
+        int32 PrefsBrightness <comment="CMenuManager">;
+        if (!l_IsPS2AU)
+        {
+            Bool BlurOn <comment="duplicate, removed from Australian copy">;
+            Align();
+        }
+        Bool PrefsShowSubtitles <comment="CMenuManager">;
+        Align();
+        enum <int32> eLanguages
+        {
+            AMERICAN,
+            FRENCH,
+            GERMAN,
+            ITALIAN,
+            SPANISH,
+            JAPANESE,
+            KOREAN
+        } PrefsLanguage <comment="CMenuManager">;
+        Bool PrefsUseWideScreen <comment="CMenuManager">;
+        Align();
+        int16 CurrPadMode <comment="duplicate">;
+        Align();
+        Bool BlurOn <comment="trails">;
+        Align();
+    }
+    struct CDate
+    {
+        uint32 Second;
+        uint32 Minute;
+        uint32 Hour;
+        uint32 Day;
+        uint32 Month;
+        uint32 Year;
+    } CompileDateAndTime <comment="EXE compile time, only has a valid date on PS2">;
+    uint32 WeatherTypeInList <comment="CWeather">;
+    float CarZoomIndicator <comment="0 = bumper, 1 = near, 2 = default, 3 = far, 4 = overhead, 5 = cinematic">;
+    float PedZoomIndicator <comment="1 = near, 2 = default, 3 = far, 4 = overhead">;
+    if (l_IsAndroid || l_IsIOS)
+    {
+        enum <uint32>
+        {
+            QUICKSAVE_NONE,              // Regular save
+            QUICKSAVE_NORMAL,            // Set by opcode 004E: TERMINATE_THIS_SCRIPT and when app exited
+            QUICKSAVE_ONMISSION = 3      // Set by opcode 03EF: MAKE_PLAYER_SAFE_FOR_CUTSCENE
+        } IsQuickSave;
+    }
+};
+
+
+/******************************
+ * Block 1: Scripts
+ ******************************/
+typedef struct ScriptData
+{
+    uint32 Size;
+    struct
+    {
+        char Tag[4] <comment="SCR">;
+        uint32 Size;
+        struct
+        {
+            uint32 SizeOfVariableSpace;
+            // Fun fact: you can inject SCM code though this array...
+            uint32 GlobalVariables[SizeOfVariableSpace / 4] <comment="0 and 1 reserved; global variables section of script space">;
+            uint32 ScriptDataSize <comment="constant 0x3C8">;
+            struct
+            {
+                uint32 OnAMissionFlag;
+                struct
+                {
+                    uint32 OnAMissionForContactFlag <comment="byte offset in ScriptSpace; opcode 0181">;
+                    uint32 BaseBriefIdForContact <comment="opcode 0182">;
+                } ContactInfo[16];
+                struct
+                {
+                    int32 Index;
+                    int32 _unknown04h;
+                } CollectiveArray[32] <comment="not used">;
+                uint32 NextFreeCollectiveIndex <comment="not used">;
+                struct  
+                {
+                    ePoolType Type;
+                    uint32 Handle;
+                    int32 NewModelId;
+                    int32 OldModelId;
+                } BuildingSwapArray[25] <comment="building model swaps (e.g. Callahan bridge parts)">;
+                struct
+                {
+                    ePoolType Type;
+                    uint32 Handle;
+                } InvisibilitySettingArray[20] <comment="invisible objects (e.g. bridge barriers)">;
+                Bool UsingAMultiScriptFile;
+                Align();
+                uint32 MainScriptSize;
+                uint32 LargestMissionScriptSize;
+                uint16 NumberOfMissionScripts;
+                Align();
+
+                Printf("MAIN size: %d\n", MainScriptSize);
+                local string version = "(unknown)";
+                if (MainScriptSize == 108762) version = "v1";   // 1st PS2 PAL release w/ 100% bug ("v1.40")
+                if (MainScriptSize == 108797) version = "v2";   // All other PS2 releases, PC, Xbox
+                if (MainScriptSize == 108853) version = "Mobile";
+                Printf("Script version: %s\n", version);
+
+            } ScriptData <open=true>;
+            uint32 NumberOfRunningScripts;
+            struct
+            {
+                struct CRunningScript
+                {
+                    local int l_StackCapacity = (l_IsPS2) ? 4 : 6;
+    
+                    DWORD pNext <comment="CRunningScript*; not loaded by game">;
+                    DWORD pPrev <comment="CRunningScript*; not loaded by game">;
+                    char ScriptName[8];
+                    uint32 IP;
+                    uint32 Stack[l_StackCapacity];
+                    uint16 StackPointer;
+                    Align();
+                    uint32 LocalVariables[16];
+                    uint32 TimerA;
+                    uint32 TimerB;
+                    Bool CondResult;
+                    Bool IsMissionScript;
+                    Bool ClearMessages <comment="set by opcode 02A1: MESSAGE_WAIT">;
+                    Align();
+                    uint32 WakeTime;
+                    enum <uint16> 
+                    {
+                        ANDOR_NONE,
+                        ANDS_1,
+                        ANDS_2,
+                        ANDS_3,
+                        ANDS_4,
+                        ANDS_5,
+                        ANDS_6,
+                        ANDS_7,
+                        ANDS_8,
+                        ORS_1 = 21,
+                        ORS_2,
+                        ORS_3,
+                        ORS_4,
+                        ORS_5,
+                        ORS_6,
+                        ORS_7,
+                        ORS_8
+                    } AndOrState;
+                    Bool NotFlag;
+                    Bool WastedBustedCheckEnabled;
+                    Bool WastedBustedCheckResult;
+                    Bool MissionFlag;
+                    Align();
+                } RunningScript[NumberOfRunningScripts] <optimize=false>;
+            } RunningScripts;
+        } Scripts;
+    } TheScripts;
+};
+
+
+/******************************
+ * Block 2: PedPool
+ ******************************/
+typedef struct PedPool
+{
+    uint32 Size;
+    struct
+    {
+        uint32 NumPeds;
+        struct
+        {
+            ePedType PedType;
+            int16 ModelIndex;
+            uint32 Handle;
+
+            // TODO: verify loaded fields on mobile
+            // Most of this class isn't reloaded, only editable fields shown.
+            struct CPed
+            {
+                local int start = FTell();
+                local int size =
+                    (l_IsPC)        ? 0x5F0:
+                    (l_IsIOS)       ? 0x614:
+                    (l_IsAndroid)   ? 0x618:
+                    (l_IsPS2JP)     ? 0x590:
+                    (l_IsPS2)       ? 0x5B0:
+                    (l_IsXbox)      ? 0x5F4:
+                    0;
+                local int createdBy =
+                    (l_IsPC)        ? 0x160:
+                    (l_IsIOS)       ? 0x164:
+                    (l_IsAndroid)   ? 0x168:
+                    (l_IsPS2JP)     ? 0x180:
+                    (l_IsPS2)       ? 0x1A0:
+                    (l_IsXbox)      ? 0x160:
+                    0;
+                local int health =
+                    (l_IsPC)        ? 0x2C0:
+                    (l_IsIOS)       ? 0x2C4:
+                    (l_IsAndroid)   ? 0x2C8:
+                    (l_IsPS2JP)     ? 0x2E0:
+                    (l_IsPS2)       ? 0x300:
+                    (l_IsXbox)      ? 0x2C4:
+                    0;
+                local int weapons =
+                    (l_IsPC)        ? 0x35C:
+                    (l_IsIOS)       ? 0x360:
+                    (l_IsAndroid)   ? 0x364:
+                    (l_IsPS2JP)     ? 0x38C:
+                    (l_IsPS2)       ? 0x3AC:
+                    (l_IsXbox)      ? 0x360:
+                    0;
+                local int maxWeaponTypeAllowed =
+                    (l_IsPC)        ? 0x499:
+                    (l_IsIOS)       ? 0x49D:
+                    (l_IsAndroid)   ? 0x4A1:
+                    (l_IsPS2JP)     ? 0x495:
+                    (l_IsPS2)       ? 0x4B5:
+                    (l_IsXbox)      ? 0x49D:
+                    0;
+                local int maxStamina =
+                    (l_IsPC)        ? 0x54C:
+                    (l_IsIOS)       ? 0x554:
+                    (l_IsAndroid)   ? 0x558:
+                    (l_IsPS2JP)     ? 0x550:
+                    (l_IsPS2)       ? 0x570:
+                    (l_IsXbox)      ? 0x550:
+                    0;
+                local int targettableObjects =
+                    (l_IsPC)        ? 0x56C:
+                    (l_IsIOS)       ? 0x574:
+                    (l_IsAndroid)   ? 0x578:
+                    (l_IsPS2JP)     ? 0x570:
+                    (l_IsPS2)       ? 0x590:
+                    (l_IsXbox)      ? 0x570:
+                    0;
+
+                if (!l_IsPS2)
+                    uint32 _pVtbl;
+                CMatrix Matrix <comment="Only Position editable">;
+
+                byte __junk0[createdBy - (FTell() - start)] <hidden=true>;
+                enum <byte> {
+	                RANDOM_CHAR = 1,
+	                MISSION_CHAR,
+                } CharCreatedBy;            // probably not that important
+
+                byte __junk1[health - (FTell() - start)] <hidden=true>;
+                float Health;
+                float Armor;
+
+                byte __junk2[weapons - (FTell() - start)] <hidden=true>;
+                struct
+                {
+                    struct CWeapon
+                    {
+                        eWeaponType Type;
+                        eWeaponState State;
+                        uint32 ammoInClip;
+                        uint32 ammoTotal;
+                        uint32 Timer <comment="reload/delay timer">;
+                        if (!l_IsPS2) {
+                            Bool AddRotOffset; // first person??
+                            byte __align[3];
+                        }
+                    } Weapons[13] <optimize=false>;
+                } Weapons;
+                byte __junk3[maxWeaponTypeAllowed - (FTell() - start)] <hidden=true>;
+                eWeaponType8 MaxWeaponTypeAllowed;          // not sure how this works, probably not that important
+
+                // PLAYER1 only
+                if (PedType == 0) {
+                    byte __junk4[maxStamina - (FTell() - start)] <hidden=true>;
+                    float MaxStamina;
+
+                    byte __junk5[targettableObjects - (FTell() - start)] <hidden=true>;
+                    int32 TargettableObjects[4] <comment="object handle">;
+                }
+
+                byte __remaining[size - (FTell() - start)] <hidden=true>;
+            } Ped;
+            
+            // Probably always true, TODO test whether regular peds can be saved
+            if (PedType == 0) {
+                int32 MaximumWantedLevel;
+                int32 MaximumChaos;
+                char ModelName[24];
+            }
+        } PedPool[NumPeds] <optimize=false>;
+    } PedPool;
+
+    Align();
+};
+
+
+/******************************
+ * Block 3: Garages
+ ******************************/
+typedef struct CStoredCar
+{
+    eModelIndex ModelIndex;
+    CVector Position;
+    CVector Angle <comment="euler angles?">;
+    DWORD Proofs <format=binary, comment="MeleeProof | CollisionProof | ExplosionProof | FireProof | BulletProof">;
+    byte Color1;
+    byte Color2;
+    eRadioStation Radio;
+    byte Extra1;
+    byte Extra2;
+    eBombType BombType;
+    Align();
+};
+
+typedef struct GarageData
+{
+    uint32 Size <comment="constant 0x156C, larger than needed (bug)">;
+    struct
+    {
+        uint32 NumGarages;
+        Bool32 BombsAreFree <comment="opcode 021D">;
+        Bool32 RespraysAreFree <comment="opcode 0335">;
+        DWORD CarsCollected <format=binary, comment="not used">;
+        uint32 BankVansCollected;
+        uint32 PoliceCarsCollected <comment="not used">;
+        DWORD CarTypesCollected1 <format=binary, comment="Portland import/export status">;
+        DWORD CarTypesCollected2 <format=binary, comment="Shoreside import/export status">;
+        DWORD CarTypesCollected3 <format=binary, comment="not used">;
+        uint32 LastTimeHelpMessage <comment="time when 'GA_21' was last shown">;
+        struct
+        {
+            struct
+            {
+                CStoredCar CarInSafeHouse1 <comment="Portland">;
+                CStoredCar CarInSafeHouse2 <comment="Staunton">;
+                CStoredCar CarInSafeHouse3 <comment="Shoreside">;
+            } CarsInSafeHouse[6] <optimize=false>;
+        } StoredCars;
+        struct
+        {
+            struct CGarage
+            {
+                enum <byte> eGarageType
+                {
+	                GARAGE_NONE,
+	                GARAGE_MISSION,
+	                GARAGE_BOMBSHOP1,
+	                GARAGE_BOMBSHOP2,
+	                GARAGE_BOMBSHOP3,
+	                GARAGE_RESPRAY,
+	                GARAGE_COLLECTORSITEMS,
+	                GARAGE_COLLECTSPECIFICCARS,
+	                GARAGE_COLLECTCARS_1,
+	                GARAGE_COLLECTCARS_2,
+	                GARAGE_COLLECTCARS_3,
+	                GARAGE_FORCARTOCOMEOUTOF,
+	                GARAGE_60SECONDS,
+	                GARAGE_CRUSHER,
+	                GARAGE_MISSION_KEEPCAR,
+	                GARAGE_FOR_SCRIPT_TO_OPEN,
+	                GARAGE_HIDEOUT_ONE,
+	                GARAGE_HIDEOUT_TWO,
+	                GARAGE_HIDEOUT_THREE,
+	                GARAGE_FOR_SCRIPT_TO_OPEN_AND_CLOSE,
+	                GARAGE_KEEPS_OPENING_FOR_SPECIFIC_CAR,
+	                GARAGE_MISSION_KEEPCAR_REMAINCLOSED,
+                } Type;
+                enum <byte> eGarageState
+                {
+	                GS_FULLYCLOSED,
+	                GS_OPENED,
+	                GS_CLOSING,
+	                GS_OPENING,
+	                GS_OPENEDCONTAINSCAR,
+	                GS_CLOSEDCONTAINSCAR,
+	                GS_AFTERDROPOFF,
+                } State;
+                byte _field02h <comment="not used">;
+                Bool ClosingWithoutTargetCar;
+                Bool Deactivated;
+                Bool ResprayHappened;
+                Align();
+                eModelIndex TargetModelIndex;
+                DWORD pDoor1 <comment="CEntity*; zeroed on load">;
+                DWORD pDoor2 <comment="CEntity*; zeroed on load">;
+                ubyte Door1PoolIndex;
+                ubyte Door2PoolIndex;
+                Bool Door1IsDummy;
+                Bool Door2IsDummy;
+                Bool RecreateDoorOnNextRefresh <comment="set to true on load">;
+                Bool RotatedDoor;
+                Bool CameraFollowsPlayer;
+                Align();
+                float X1;
+                float X2;
+                float Y1;
+                float Y2;
+                float Z1;
+                float Z2;
+                float DoorPos;
+                float DoorHeight;
+                float Door1X;
+                float Door1Y;
+                float Door2X;
+                float Door2Y;
+                float Door1Z;
+                float Door2Z;
+                uint32 TimeToStartAction;
+                byte CollectedCarsState <comment="import/export state">;
+                Align();
+                DWORD pTarget <comment="CVehicle*; zeroed on load">;
+                DWORD _field96h <comment="not used; zeroed on load">;
+                CStoredCar StoredCar <comment="not used">;
+            } Garage[32] <optimize=false>;
+        } Garages;
+    } Garages;
+
+    //Unused extra space that can be removed
+    local int extraSpace = Size - sizeof(Garages);
+    if (extraSpace > 0) {
+        byte _ExtraSpace[extraSpace] <hidden=false>; 
+    }
+};
+
+
+/******************************
+ * Block 4: VehiclePool
+ ******************************/
+typedef struct VehiclePool
+{
+    uint32 Size;
+    struct
+    {
+        int32 NumCars;
+        int32 NumBoats;
+        if (NumCars + NumBoats > 0) {
+            struct
+            {
+                eVehicleType Type <comment="from CVehicle base">;
+                eModelIndex16 ModelIndex <comment="from CEntity base">;
+                int32 Handle;
+    
+                // Most of this data is not re-loaded.
+                // see CVehicle for loaded fields
+                if (Type == VEHICLE_TYPE_CAR) {
+                    CAutomobile Automobile <open=true, comment="only some CVehicle fields loaded">;
+                }
+                else if (Type == VEHICLE_TYPE_BOAT) {
+                    CBoat Boat <open=true, comment="only some CVehicle fields loaded">;
+                }
+            } VehiclePool[NumCars + NumBoats] <optimize=false>;
+        }
+    } VehiclePool;
+
+    Align();
+};
+
+/******************************
+ * Block 5: ObjectPool
+ ******************************/
+typedef struct ObjectPool
+{
+    uint32 Size;
+    struct
+    {
+        uint32 NumObjects;
+        struct
+        {
+            struct
+            {
+                int16 ModelIndex;
+                int32 Handle;
+                CCompressedMatrix Matrix <comment="from CPlaceable">;
+                if ((l_IsPS2 && l_IsPS2JP) || !l_IsPS2)
+                {
+                    // Uninitialized data
+                    DWORD _unknown <comment="not used">;
+                }
+                float UprootLimit;
+                CCompressedMatrix ObjectMatrix <comment="from CObject">;
+                if ((l_IsPS2 && l_IsPS2JP) || !l_IsPS2)
+                {
+                    // Uninitialized data
+                    DWORD _unknown <comment="not used">;
+                }
+                enum <byte> 
+                {
+                    UNKNOWN_OBJECT,
+                    GAME_OBJECT,
+                    MISSION_OBJECT,     // only this type is saved
+                    TEMP_OBJECT,
+                    CUTSCENE_OBJECT
+                } ObjectCreatedBy;
+                Bool IsPickup;
+                Bool IsPickupInShop;
+                Bool IsPickupOutOfStock;
+                Bool IsGlassCracked;
+                Bool IsGlassBroken;
+                Bool HasBeenDamaged;
+                Bool UseVehicleColors;
+                float CollisionDamageMultiplier;
+                ubyte CollisionDamageEffect;
+                ubyte SpecialCollisionResponseCases;
+                uint32 EndOfLifeTime;
+                DWORD EntityFlagsA <format=binary>;
+                if (l_IsIOS)
+                {
+                    // Entity flags w/o scan code in upper word?
+                    WORD EntityFlagsB <format=binary>;
+                }
+                else
+                {
+                    // Entity flags w/ scan code in upper word
+                    DWORD EntityFlagsB <format=binary>;
+                }
+            } Object[NumObjects] <optimize=false>;
+        } MissionObjects;
+    } ObjectPool;
+
+    Align();
+};
+
+/******************************
+ * Block 6: PathFind
+ ******************************/
+typedef struct PathData
+{
+    uint32 BlockSize;
+    struct
+    {
+        byte DisabledNodes[BlockSize / 2] <format=binary, optimize=false>;
+        byte BetweenLevels[BlockSize / 2] <format=binary, optimize=false>;
+    } PathFind;
+};
+
+/******************************
+ * Block 7: Cranes
+ ******************************/
+typedef struct CraneData
+{
+    uint32 Size;
+    struct
+    {
+        uint32 NumCranes;
+        DWORD CarsCollectedMilitaryCrane <format=binary, comment="EV crane status">;
+        struct CCrane
+        {
+            uint32 Handle;
+            uint32 HookHandle;
+            uint32 AudioHandle;
+            float PickupX1 <comment="01EE param 3">;
+            float PickupX2 <comment="01EE param 5">;
+            float PickupY1 <comment="01EE param 6">;
+            float PickupY2 <comment="01EE param 4">;
+            CVector DropoffTarget <comment="opcode 01EE params 7-9">;
+            float DropoffHeading <comment="01EE param 10; radians">;
+            float PickupAngle <comment="radians">;
+            float DropoffAngle <comment="radians">;
+            float PickupDistance <comment="from crane center">;
+            float DropoffDistance <comment="from crane center">;
+            float PickupHeight;
+            float DropoffHeight;
+            float HookAngle <comment="radians">;
+            float HookDistance <comment="from crane center">;
+            float HookHeight;
+            CVector HookInitialPosition;
+            CVector HookCurrentPosition;
+            CVector2D HookVelocity;
+            uint32 VehiclePoolIndex;
+            uint32 TimeForNextCheck <comment="game time + 10000; updates when crane has finished lifting">;
+            enum <byte> eCraneStatus
+            {
+                CRANE_NONE,
+                CRANE_ACTIVATED,
+                CRANE_DEACTIVATED
+            } Status;
+            enum <byte> eCraneState
+            {
+                CS_IDLE,
+                CS_GOING_TOWARDS_TARGET,
+		        CS_LIFTING_TARGET,
+		        CS_GOING_TOWARDS_TARGET_ONLY_HEIGHT,
+		        CS_ROTATING_TARGET,
+		        CS_DROPPING_TARGET
+            } Status;
+            ubyte NumberOfVehiclesCollected;
+            Bool IsCrusherCrane;
+            Bool IsMilitaryCrane;
+            Bool WasMilitaryCrane;
+            Bool IsTop <comment="model is cranetopa or cranetopb (big cranes at harbor)">;
+            Align();
+        } Crane[8] <optimize=false>;
+    } Cranes;
+};
+
+/******************************
+ * Block 8: Pickups
+ ******************************/
+typedef struct PickupData
+{
+    uint32 Size;
+    struct
+    {
+        struct
+        {
+            struct CPickup
+            {
+                enum <byte> ePickupType
+                {
+                    PICKUP_NONE,
+                    PICKUP_IN_SHOP,
+                    PICKUP_ON_STREET,
+                    PICKUP_ONCE,
+                    PICKUP_ONCE_TIMEOUT,
+                    PICKUP_COLLECTIBLE1,
+                    PICKUP_IN_SHOP_OUT_OF_STOCK,
+                    PICKUP_MONEY,
+                    PICKUP_MINE_INACTIVE,
+                    PICKUP_MINE_ARMED,
+                    PICKUP_NAUTICAL_MINE_INACTIVE,
+                    PICKUP_NAUTICAL_MINE_ARMED,
+                    PICKUP_FLOATINGPACKAGE,
+                    PICKUP_FLOATINGPACKAGE_FLOATING,
+                    PICKUP_ON_STREET_SLOW
+                } Type;
+                Bool HasBeenPickedUp;
+                uint16 Quantity;
+                uint32 Handle;
+                uint32 Timer <comment="regeneration time">;
+                int16 ModelIndex;
+                uint16 Index;
+                CVector Position;
+            } Pickup[336] <optimize=false>;
+        } Pickups;
+        uint16 CollectedPickUpIndex;
+        uint16 _zero <comment="maybe used to be NumMessages">;
+        DWORD PickupsCollected[20];
+    } Pickups;
+};
+
+/******************************
+ * Block 9: PhoneInfo
+ ******************************/
+typedef struct PhoneData
+{
+    uint32 Size;
+    struct
+    {
+        uint32 NumPhones;
+        uint32 NumActivePhones;
+        struct CPhone
+        {
+            CVector Position;
+            DWORD Messages[6] <comment="wchar_t*; opcodes 024B, 024C, 0378, 0379, 037A, 037B, 037C, 037D, 0386, 0387, 0388, 0389">;
+            uint32 RepeatedMessageStartTime;
+            uint32 Handle;
+            enum <uint32> ePhoneState
+            {
+	            PHONE_STATE_FREE,
+	            PHONE_STATE_REPORTING_CRIME, // not used
+	            PHONE_STATE_MESSAGE_REMOVED = 3,
+	            PHONE_STATE_ONETIME_MESSAGE_SET,
+	            PHONE_STATE_REPEATED_MESSAGE_SET,
+	            PHONE_STATE_REPEATED_MESSAGE_SHOWN_ONCE,
+	            PHONE_STATE_ONETIME_MESSAGE_STARTED,
+	            PHONE_STATE_REPEATED_MESSAGE_STARTED,
+	            PHONE_STATE_RINGING
+            } State;
+            Bool VisibleToCam;
+            Align();
+        } Phones[50] <optimize=false>;
+    } PhoneInfo;
+};
+
+/******************************
+ * Block 10: RestartPoints
+ ******************************/
+typedef struct RestartPoint
+{
+    CVector Position <open=true>;
+    float   Angle;
+};
+
+typedef struct RestartData
+{
+    uint32 Size;
+    struct
+    {
+        char Tag[4] <comment="RST">;
+        uint32 BlockSize;
+        struct
+        {
+            RestartPoint HospitalRestartPoints[8] <comment="opcode 016C">;
+            RestartPoint PoliceRestartPoints[8] <comment="opcode 016D">;
+            uint16 NumberOfHospitalRestarts;
+            uint16 NumberOfPoliceRestarts;
+            Bool OverrideRestart <comment="opcodes 016E, 0255">;
+            Align();
+            RestartPoint Override <comment="opcodes 016E, 0255">;
+            Bool FadeInAfterNextDeath <comment="opcode 040F">;
+            Bool FadeInAfterNextArrest <comment="opcode 040E">;
+            eLevelName8 OverrideHospitalLevel <comment="opcode 041F">;
+            eLevelName8 OverridePoliceStationLevel <comment="opcode 0420">;
+        } RestartInfo;
+    } RestartInfo;
+};
+
+/******************************
+ * Block 11: Radar Blips
+ ******************************/
+typedef struct RadarData
+{
+    uint32 Size;
+    struct
+    {
+        char Tag[4] <comment="RDR">;
+        uint32 Size;
+        struct sRadarTrace
+        {
+            uint32 ColorId <comment="opcode 0165">;
+            enum <uint32> eBlipType
+            {
+                BLIP_NONE,
+                BLIP_CAR,
+                BLIP_CHAR,
+                BLIP_OBJECT,
+                BLIP_COORD,
+                BLIP_CONTACT_POINT
+            } Type;
+            uint32 EntityHandle <comment="opcodes 0161, 0162, 0163">;
+            CVector2D RadarPosition;
+            CVector WorldPosition;
+            uint16 BlipIndex;
+            Bool IsBright <comment="opcode 0166">;
+            Bool Enabled;
+            float Radius;
+            uint16 Scale <comment="opcode 0168">;
+            enum <uint16> eBlipDisplay
+            {
+                BLIP_DISPLAY_NEITHER,
+                BLIP_DISPLAY_MARKER_ONLY,
+                BLIP_DISPLAY_BLIP_ONLY,
+                BLIP_DISPLAY_BOTH
+            } Display <comment="opcode 0168">;
+            enum <uint16> eRadarSprite
+            {
+                RADAR_SPRITE_NONE,
+                RADAR_SPRITE_ASUKA,
+                RADAR_SPRITE_BOMB,
+                RADAR_SPRITE_CAT,
+                RADAR_SPRITE_CENTRE,
+                RADAR_SPRITE_COPCAR,
+                RADAR_SPRITE_DON,
+                RADAR_SPRITE_EIGHT,
+                RADAR_SPRITE_EL,
+                RADAR_SPRITE_ICE,
+                RADAR_SPRITE_JOEY,
+                RADAR_SPRITE_KENJI,
+                RADAR_SPRITE_LIZ,
+                RADAR_SPRITE_LUIGI,
+                RADAR_SPRITE_NORTH,
+                RADAR_SPRITE_RAY,
+                RADAR_SPRITE_SAL,
+                RADAR_SPRITE_SAVE,
+                RADAR_SPRITE_SPRAY,
+                RADAR_SPRITE_TONY,
+                RADAR_SPRITE_WEAPON
+            } Sprite;
+            Align();
+        } RadarBlip[32] <optimize=false>;
+    } RadarBlips;
+};
+
+/******************************
+ * Block 12: Zones
+ ******************************/
+typedef struct CZone
+{
+    char Name[8];
+    CVector Min;
+    CVector Max;
+    enum <uint32> eZoneType
+    {
+	    ZONE_AUDIO,
+	    ZONE_TYPE1,	// this should be NAVIG
+	    ZONE_TYPE2,	// this should be INFO...but all except MAPINFO get zoneinfo??
+	    ZONE_MAPZONE,
+    } Type;
+    eLevelName Level;
+    int16 ZoneInfoDay;
+    int16 ZoneInfoNight;
+    int32 ChildZoneIndex;
+    int32 ParentZoneIndex;
+    int32 NextZoneIndex;
+};
+
+typedef struct ZoneData
+{
+    uint32 Size;
+    struct
+    {
+        char Tag[4] <comment="ZNS">;
+        uint32 Size;
+        struct
+        {
+            uint32 CurrentZoneIndex;
+            eLevelName CurrentLevel;
+            uint16 FindIndex <comment="totally useless">;
+            Align();
+            CZone Zones[50] <comment="see gta3.zon">;
+            struct CZoneInfo
+            {
+                // All 'Car' densities are stored in an always-increasing fashion.
+                // Take the difference between adjacent values to get the actual density value.
+                int16 CarDensity;
+                int16 CarThreshold[6] <comment="poorfamily, richfamily, executive, worker, special, big">;
+                int16 CopCarDensity;
+                int16 GangCarDensity[9] <comment="mafia, triads, diablos, yakuza, yardies, cartel, hoods, not used, not used">;
+                int16 PedDensity;
+                int16 CopPedDensity;
+                int16 GangPedDensity[9] <comment="mafia, triads, diablos, yakuza, yardies, cartel, hoods, not used, not used">;
+                int16 PedGroup;
+            } ZoneInfo[100];
+            uint16 NumberOfZones;
+            uint16 NumberOfZoneInfos;
+            CZone MapZones[25] <comment="see map.zon">;
+            struct 
+            {
+                int16 ZoneId;
+            } AudioZones[36];
+            uint16 NumberOfMapZones;
+            uint16 NumberOfAudioZones;
+        } TheZones;
+    } Zones;
+};
+
+/******************************
+ * Block 13: GangData
+ ******************************/
+typedef struct GangData
+{
+    uint32 Size;
+    struct
+    {
+        char Tag[4] <comment="GNG">;
+        uint32 Size;
+        struct
+        {
+            struct CGangInfo
+            {
+                eModelIndex VehicleModel;
+                byte PedModelOverride;
+                Align();
+                eWeaponType Weapon1;
+                eWeaponType Weapon2;
+            } Gang[9] <optimize=false>;
+        } GangData;
+    } GangData;
+};
+
+/******************************
+ * Block 14: CarGenerators
+ ******************************/
+typedef struct CarGeneratorData
+{
+    uint32 Size <comment="constant 0x2D1C">;
+    struct
+    {
+        char Tag[4] <comment="CGN">;
+        uint32 Size <comment="constant 0x2D14">;
+        struct
+        {
+            uint32 CarGenDataSize <comment="constant 0x0C">;
+            struct
+            {
+                uint32 NumberOfCarGenerators;
+                uint32 CurrentActiveCount;
+                byte ProcessCounter;
+                byte GenerateEvenIfPlayerIsCloseCounter;
+                Align();
+            } CarGenData <open=true>;
+            uint32 CarGenArraySize <comment="constant 0x2D00">;
+            struct
+            {
+                struct CCarGenerator
+                {
+                    eModelIndex ModelIndex;
+                    CVector Position;
+                    float Angle;
+                    int16 Color1;
+                    int16 Color2;
+                    Bool ForceSpawn;
+                    byte Alarm;
+                    byte DoorLock;
+                    Align();
+                    uint16 MinDelay;
+                    uint16 MaxDelay;
+                    uint32 Timer <comment="game timer + 60000 when stolen">;
+                    int32 Handle <comment="-1 if not spawned">;
+                    int16 UsesRemaining <comment="functions as a boolean; this feature appears to be broken">;
+                    Bool IsBlocking <comment="used to prevent two cars spawning too close to each other">;
+                    Align();
+                    CVector VecInf <comment="not used, collision bounding box">;
+                    CVector VecSup <comment="not used, collision bounding box">;
+                    float Size <comment="not used, collision related">;
+                } CarGenerator[160] <optimize=false>;
+            } CarGenerators;
+        } TheCarGenerators;
+    } CarGenerators;
+};
+
+/******************************
+ * Block 15: ParticleObjects
+ ******************************/
+typedef struct ParticleObjectData
+{
+    uint32 Size;
+    struct
+    {
+        uint32 NumParticleObjects;
+        struct
+        {
+            struct CParticleObject
+            {
+                CPlaceable _base <comment="only CMatrix::Position loaded">;
+                DWORD pNext <comment="CParticleObject*; not loaded">;
+                DWORD pPrev <comment="CParticleObject*; not loaded">;
+                DWORD pParticle <comment="CParticle*; not loaded">;
+                uint32 RemoveTimer;
+                enum <uint32> eParticleObjectType
+                {
+                    POBJECT_PAVEMENT_STEAM,
+                    POBJECT_PAVEMENT_STEAM_SLOWMOTION,
+                    POBJECT_WALL_STEAM,
+                    POBJECT_WALL_STEAM_SLOWMOTION,
+                    POBJECT_DARK_SMOKE,
+                    POBJECT_FIRE_HYDRANT,
+                    POBJECT_CAR_WATER_SPLASH,
+                    POBJECT_PED_WATER_SPLASH,
+                    POBJECT_SPLASHES_AROUND,
+                    POBJECT_SMALL_FIRE,
+                    POBJECT_BIG_FIRE,
+                    POBJECT_DRY_ICE,
+                    POBJECT_DRY_ICE_SLOWMOTION,
+                    POBJECT_FIRE_TRAIL,
+                    POBJECT_SMOKE_TRAIL,
+                    POBJECT_FIREBALL_AND_SMOKE,
+                    POBJECT_ROCKET_TRAIL,
+                    POBJECT_EXPLOSION_ONCE,
+                    POBJECT_CATALINAS_GUNFLASH,
+                    POBJECT_CATALINAS_SHOTGUNFLASH
+                } Type <comment="opcode 039D">;                
+                eParticleType ParticleType <comment="see particle.cfg">;
+                ubyte NumEffectCycles;
+                ubyte SkipFrames;
+                Align();
+                uint16 FrameCounter;
+                enum <uint16> eParticleObjectState
+                {
+	                POBJECTSTATE_INITIALISED,
+	                POBJECTSTATE_UPDATE_CLOSE,
+	                POBJECTSTATE_UPDATE_FAR,
+	                POBJECTSTATE_FREE,
+                } State <comment="set to POBJECTSTATE_UPDATE_CLOSE when loaded">;
+                CVector Target;
+                float Spread <comment="type 13 only">;
+                float Size;
+                uint32 Color <format=hex, comment="RGBA">;
+                Bool DestroyWhenFar;
+                byte CreationChance <comment="0 = always generate; <0 = chance of generating; >0 = chance of not generating">;
+                Align();
+                if (l_IsPS2)
+                {
+                    DWORD _unknown;
+                }
+            } Particle[NumParticleObjects + 1] <optimize=false, comment="last one is a tail sentinel (I think)">;
+        } Particles;
+    } Particles;
+};
+
+/******************************
+ * Block 16: AudioScriptObjects
+ ******************************/
+typedef struct AudioScriptData
+{
+    uint32 Size;
+    struct
+    {
+        char Tag[4] <comment="AUD">;
+        uint32 BlockSize;
+        struct
+        {
+            uint32 NumAudioScriptObjects;
+            struct
+            {
+                struct
+                {
+                    uint32 PoolIndex;
+                    int16 AudioId;
+                    Align();
+                    CVector Position;
+                    int32 AudioEntity;
+                } AudioScriptObject[NumAudioScriptObjects] <optimize=false>;
+            } AudioScriptObjects;
+        } AudioScriptObjects;
+    } AudioScriptObjects;
+};
+
+/******************************
+ * Block 17: PlayerInfo
+ ******************************/
+typedef struct PlayerData
+{
+    uint32 Size <comment="constant 0x13C; larger than needed, this is actually CPlayerInfo size (bug)">;
+    struct
+    {
+        int32 Money;
+        enum <byte> eWastedBustedState
+        {
+	        WBSTATE_PLAYING,
+	        WBSTATE_WASTED,
+	        WBSTATE_BUSTED,
+	        WBSTATE_FAILED_CRITICAL_MISSION,
+        } WastedBustedState;
+        uint32 WastedBustedTime;
+        int16 TrafficMultiplier;
+        float RoadDensity;
+        int32 MoneyOnScreen;
+        uint32 CollectedHiddenPackages;
+        uint32 TotalHiddenPackages <comment="opcode 02ED">;
+        Bool InfiniteSprint <comment="opcode 0330">;
+        Bool FastReload <comment="opcode 0331">;
+        Bool GetOutOfJailFree <comment="opcode 0413">;
+        Bool GetOutOfHospitalFree <comment="opcode 0414">;
+        char PlayerName[70] <comment="not used">;
+    } PlayerInfo;
+    
+    // Unused extra space that can be removed
+    local int extraSpace = Size - sizeof(PlayerInfo);
+    if (extraSpace > 0) {
+        byte _ExtraSpace[extraSpace] <hidden=false>; 
+    }
+};
+
+/******************************
+ * Block 18: Stats
+ ******************************/
+typedef struct StatsData
+{
+    uint32 BlockSize;
+    struct
+    {
+        uint32 PeopleKilledByPlayer;
+        uint32 PeopleKilledByOthers;
+        uint32 CarsExploded;
+        uint32 RoundsFiredByPlayer;
+        uint32 PedsKilledOfThisType[23] <comment="each index corresponds to pedtype">;
+        uint32 HelisDestroyed;
+        uint32 ProgressMade;
+        uint32 TotalProgressInGame;
+        uint32 KgsOfExplosivesUsed;
+        uint32 InstantHitsFiredByPlayer;
+        uint32 InstantHitsHitByPlayer;
+        uint32 CarsCrushed;
+        uint32 HeadsPopped;
+        uint32 TimesArrested;
+        uint32 TimesDied;
+        uint32 DaysPassed;
+        uint32 MmRain;
+        float  MaximumJumpDistance;
+        float  MaximumJumpHeight;
+        uint32 MaximumJumpFlips;
+        uint32 MaximumJumpSpins;
+        enum <uint32>
+        {
+            NO_INSANE_STUNTS_COMPLETED,
+            INSANE_STUNT,
+            PERFECT_INSANE_STUNT,
+            DOUBLE_INSANE_STUNT,
+            PERFECT_DOUBLE_INSANE_STUNT,
+            TRIPLE_INSANE_STUNT,
+            PERFECT_TRIPLE_INSANE_STUNT,
+            QUADRUPLE_INSANE_STUNT,
+            PERFECT_QUADRUPLE_INSANE_STUNT
+        } BestStuntJump;
+        uint32 NumberOfUniqueJumpsFound;
+        uint32 TotalNumberOfUniqueJumps;
+        uint32 MissionsGiven;
+        uint32 MissionsPassed;
+        uint32 PassengersDroppedOffWithTaxi;
+        uint32 MoneyMadeWithTaxi;
+        Bool32 IndustrialPassed;
+        Bool32 CommercialPassed;
+        Bool32 SuburbanPassed;
+        uint32 ElBurroTime;
+        float  DistanceTravelledOnFoot;
+        float  DistanceTravelledInVehicle;
+        uint32 Record4x4One <comment="Patriot Playground">;
+        uint32 Record4x4Two <comment="A Ride in the Park">;
+        uint32 Record4x4Three <comment="Gripped!">;
+        uint32 Record4x4Mayhem <comment="Multistorey Mayhem">;
+        uint32 LivesSavedWithAmbulance;
+        uint32 CriminalsCaught;
+        uint32 HighestLevelAmbulanceMission;
+        uint32 FiresExtinguished;
+        uint32 LongestFlightInDodo;
+        uint32 TimeTakenDefuseMission;
+        uint32 NumberKillFrenziesPassed;
+        uint32 TotalNumberKillFrenzies;
+        uint32 TotalNumberMissions;
+        uint32 FastestTimes[16] <comment="not used">;
+        uint32 HighestScores[16] <comment="blinb-bling, diablo destr, mafia mass, casino calam, rumpo wreck, not used...">;
+        uint32 KillsSinceLastCheckpoint;
+        uint32 TotalLegitimateKills;
+        char LastMissionPassedName[8] <comment="GXT key">;
+
+        if (Stats.TotalProgressInGame > 0) Printf("Game progress: %.2f%%\n", ((float) Stats.ProgressMade / Stats.TotalProgressInGame) * 100.0f);
+        Printf("Last mission passed: %s\n", Stats.LastMissionPassedName);
+    } Stats;
+};
+
+/******************************
+ * Block 19: Streaming
+ ******************************/
+typedef struct StreamingData
+{
+    uint32 Size;
+    struct
+    {
+        byte ModelFlags[200];
+    } Streaming;
+};
+
+/******************************
+ * Block 20: PedTypeInfo
+ ******************************/
+typedef struct PedTypeData
+{
+    uint32 BlockSize;
+    struct
+    {
+        char Tag[4] <comment="PTP">;
+        uint32 BlockSize;
+        struct
+        {
+            struct
+            {
+                DWORD Flag <format=binary>;
+                float _Unknown <comment="ped.dat 1st value / 50.0">;
+                float _Unknown <comment="ped.dat 2nd value / 50.0">;
+                float _Unknown <comment="ped.dat 3rd value / 50.0">;
+                float FleeDistance <comment="see pedstats.dat">;
+                float HeadingChangeRate <comment="degrees; see pedstats.dat">;
+                DWORD Threats <format=binary, comment="each bit index cooresponds to pedtype ID; see ped.dat">;
+                DWORD Avoid <format=binary, comment="each bit index cooresponds to pedtype ID; see ped.dat">;
+            } PedTypeInfo[23] <optimize=false>;
+        } PedTypeInfo;
+    } PedTypeInfo;
+};
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Save File Format
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+local int l_BlockCount = CountBlocks();
+local int l_BlockIndex = 0;
+
+// The block format is very weird. Blocks within blocks within blocks...
+
+struct
+{
+    uint32 BlockSize;
+    struct
+    {
+        if (l_IsPS2)
+        {
+            switch (l_BlockIndex++)
+            {
+            case 0:
+                SimpleVariables     SimpleVars          <name="SimpleVars">;
+                ScriptData          Scripts             <name="Scripts">;
+                PedPool             Peds                <name="Peds">;
+                GarageData          Garages             <name="Garages">;
+                VehiclePool         Vehicles            <name="Vehicles">;
+                break;
+            case 1:
+                ObjectPool          Objects             <name="Objects">;
+                PathData            PathFind            <name="PathFind">;
+                CraneData           Cranes              <name="Cranes">;
+                break;
+            case 2:
+                PickupData          Pickups             <name="Pickups">;
+                PhoneData           PhoneInfo           <name="PhoneInfo">;
+                RestartData         RestartPoints       <name="RestartPoints">;
+                RadarData           RadarBlips          <name="RadarBlips">;
+                ZoneData            Zones               <name="Zones">;
+                GangData            Gangs               <name="Gangs">;
+                CarGeneratorData    CarGenerators       <name="CarGenerators">;
+                ParticleObjectData  ParticleObjects     <name="ParticleObjects">;
+                AudioScriptData     AudioScriptObjects  <name="AudioScriptObjects">;
+                PlayerData          PlayerInfo          <name="PlayerInfo">;
+                StatsData           Stats               <name="Stats">;
+                StreamingData       Streaming           <name="Streaming">;
+                PedTypeData         PedTypeInfo         <name="PedTypeInfo">;
+                break;
+            default:
+                struct
+                {
+                    FSkip(BlockSize);
+                } PaddingBlock <name="Padding">;
+                break;
+            }
+        }
+        else
+        {
+            switch (l_BlockIndex++)
+            {
+            case 0:
+                    SimpleVariables     SimpleVars          <name="SimpleVars">;
+                    ScriptData          Scripts             <name="Scripts">; break;
+            case 1: PedPool             Peds                <name="Peds">; break;
+            case 2: GarageData          Garages             <name="Garages">; break;
+            case 3: VehiclePool         Vehicles            <name="Vehicles">; break;
+            case 4: ObjectPool          Objects             <name="Objects">; break;
+            case 5: PathData            PathFind            <name="PathFind">; break;
+            case 6: CraneData           Cranes              <name="Cranes">; break;
+            case 7: PickupData          Pickups             <name="Pickups">; break;
+            case 8: PhoneData           PhoneInfo           <name="PhoneInfo">; break;
+            case 9: RestartData         RestartPoints       <name="RestartPoints">; break;
+            case 10:RadarData           RadarBlips          <name="RadarBlips">; break;
+            case 11:ZoneData            Zones               <name="Zones">; break;
+            case 12:GangData            Gangs               <name="Gangs">; break;
+            case 13:CarGeneratorData    CarGenerators       <name="CarGenerators">; break;
+            case 14:ParticleObjectData  ParticleObjects     <name="ParticleObjects">; break;
+            case 15:AudioScriptData     AudioScriptObjects  <name="AudioScriptObjects">; break;
+            case 16:PlayerData          PlayerInfo          <name="PlayerInfo">; break;
+            case 17:StatsData           Stats               <name="Stats">; break;
+            case 18:StreamingData       Streaming           <name="Streaming">; break;
+            case 19:PedTypeData         PedTypeInfo         <name="PedTypeInfo">; break;
+            default:
+                struct
+                {
+                    FSkip(BlockSize);
+                } PaddingBlock <name="Padding">;
+                break;
+            }
+        }
+    } NestedBlock <open=true>;
+    
+    // Skip over remaining bytes
+    local int l_UnderBy = BlockSize - sizeof(NestedBlock);
+    local int l_OverBy = sizeof(NestedBlock) - BlockSize;
+    if (l_UnderBy > 0)
+    {
+        Printf("Block %d: Skipping %d bytes at end...\n", l_BlockIndex - 1, l_UnderBy);
+        FSkip(l_UnderBy);
+    }
+    else if (l_OverBy > 0)
+    {
+        Printf("Block %d: Went past end by %d bytes!\n", l_BlockIndex - 1, l_OverBy);
+    }
+} Block[l_BlockCount] <optimize=false, open=true>;
+
+uint32 CheckSum <read=UpdateCheckSum>;
+if (l_IsXbox) byte _xSaveSig[20] <comment="Xbox save signature, SHA-1 hash">;
+
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Helper Functions
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+int Align4Bytes(int addr)
+{
+    local int l_Aligned = addr;
+    local int l_Remainder = addr % 4;
+    if (l_Remainder > 0)
+    {
+        l_Aligned += (4 - l_Remainder);
+    }
+
+    return l_Aligned;
+}
+
+void Align()
+{
+    local int l_Aligned = Align4Bytes(FTell());
+    FSeek(l_Aligned);
+}
+
+int CountBlocks()
+{
+    local int l_Mark = FTell();
+    local int l_BlockCount = 0;
+
+    FSeek(0);
+    while (FTell() < FileSize())
+    {
+        FSkip(ReadInt() + 4);
+        l_BlockCount++;
+    }
+    FSeek(l_Mark);
+
+    return l_BlockCount - 1;
+}
+
+string UpdateCheckSum(uint32 OldCheckSum)
+{
+    local int l_CheckSumOffset = 0;
+    local uint32 l_NewCheckSum;
+    local string l_NewCheckSumString;
+
+    if (l_IsXbox)
+    {
+        l_CheckSumOffset = FileSize() - 24;
+    }
+    else
+    {
+        l_CheckSumOffset = FileSize() - 4;
+    }
+
+    l_NewCheckSum = Checksum(CHECKSUM_BYTE, 0, l_CheckSumOffset);
+    if (l_NewCheckSum != OldCheckSum)
+    {
+        WriteUInt(l_CheckSumOffset, l_NewCheckSum);
+    }
+
+    SPrintf(l_NewCheckSumString, "%d", l_NewCheckSum);
+    return l_NewCheckSumString;
+}
+
+void DetectPlatform()
+{
+    /****************************
+     * PLATFORM DETECTION NOTES *
+     ****************************
+     * There are three metrics used to determine which game system a GTA3 save
+     * is compatible with:
+     *   1) The location and value of the File ID (see footnote).
+     *   2) The offset of the 'SCR' block tag (effectively the size of SimpleVars).
+     *   3) The size of the second data block (referred to as 'Block 1').
+     *
+     * Android:
+     *   SCR Tag Offset : 0xB8
+     *   File ID Offset : 0x34
+     *   File ID Value  : 0x31401
+     *   Block 1 Size   : 0x64C
+     *
+     * iOS:
+     *   SCR Tag Offset : 0xB8
+     *   File ID Offset : 0x34
+     *   File ID Value  : 0x31401
+     *   Block 1 Size   : 0x648
+     *
+     * PC:
+     *   SCR Tag Offset : 0xC4
+     *   File ID Offset : 0x44
+     *   File ID Value  : 0x31401
+     *   Block 1 Size   : 0x624
+     * 
+     * PS2:
+     *   SCR Tag Offset : 0xB8
+     *   File ID Offset : 0x04
+     *   File ID Value  : 0x31401
+     *   Block 1 Size   : N/A
+     *
+     * PS2 (Australia):
+     *   SCR Tag Offset : 0xB0
+     *   File ID Offset : 0x04
+     *   File ID Value  : 0x31401
+     *   Block 1 Size   : N/A
+     *
+     * PS2 (Japan):
+     *   SCR Tag Offset : 0xB8
+     *   File ID Offset : 0x04
+     *   File ID Value  : 0x31400
+     *   Block 1 Size   : N/A
+     *
+     * Xbox:
+     *   SCR Tag Offset : 0xC4
+     *   File ID Offset : 0x44
+     *   File ID Value  : 0x31401
+     *   Block 1 Size   : 0x628
+     *
+     * FOOTNOTE:
+     *   The File ID is a constant that appears in one of two forms in every GTA3 save.
+     *   Form 1 is 0x31400, form 2 is 0x31401. Form 2 is the most common, appearing in
+     *   all saves except for Japanese PS2 saves. Form 1 appears in Japanese PS2 saves
+     *   only. The value itself is not used by the game, so modifying it does no harm
+     *   (though you might break some save editing tools!). From disassembling the game
+     *   and investigating the save routine, I was able to determine that the value
+     *   0x31400 is the size of the file contents if you omit the checksum and the block
+     *   size DWORDs that appear before each data block. Thus, the total size of the file
+     *   can be computed by
+     *      0x31400 + (N*4) + 4
+     *   where N is the number of data blocks. It's not clear why this value is writen or
+     *   why most saves use 0x31401 as the file ID. It might have to do with the fact that
+     *   the code used to keep track of the file size as a save is being created differs
+     *   slightly on the Japanese version of the game (though the outcome is the same).
+     */
+    local const int l_FileIdJP = 0x31400;
+    local const int l_FileIdNonJP = 0x31401;
+
+    local int l_IsPCOrXbox;
+    local int l_ScrOffset;
+    local int l_SizeOfPedPool;
+    local int l_Block1Offset;
+    local int l_NumPlayerPeds;
+    local int l_SizeOfPlayerPed;
+    
+    l_ScrOffset = FindFirst("SCR\0");
+    if (l_ScrOffset == 0xB0 && ReadInt(0x04) == l_FileIdNonJP)
+    {
+        l_IsPS2 = 1;
+        l_IsPS2AU = 1;
+        return;
+    }
+    else if (l_ScrOffset == 0xB8)
+    {
+        if (ReadInt(0x04) == l_FileIdJP)
+        {
+            l_IsPS2 = 1;
+            l_IsPS2JP = 1;
+            return;
+        }
+        else if (ReadInt(0x04) == l_FileIdNonJP)
+        {
+            l_IsPS2 = 1;
+            return;
+        }
+        else if (ReadInt(0x34) == l_FileIdNonJP)
+        {
+            l_IsMobile = 1;
+        }
+    }
+    if (l_ScrOffset == 0xC4 && ReadInt(0x44) == l_FileIdNonJP)
+    {
+        l_IsPCOrXbox = 1;
+    }
+
+    l_Block1Offset = ReadInt(0x00) + 4;
+    l_SizeOfPedPool = ReadInt(l_Block1Offset + 4) - 4;
+    l_NumPlayerPeds = ReadInt(l_Block1Offset + 8);
+    l_SizeOfPlayerPed = l_SizeOfPedPool / l_NumPlayerPeds;
+    if (l_IsMobile)
+    {
+        if (l_SizeOfPlayerPed == 0x63E)
+        {
+            l_IsIOS = 1;
+            return;
+        }
+        else if (l_SizeOfPlayerPed == 0x642)
+        {
+            l_IsAndroid = 1;
+            return;
+        }
+    }
+    else if (l_IsPCOrXbox)
+    {
+        if (l_SizeOfPlayerPed == 0x61A)
+        {
+            // TODO: Windows vs Mac differences?
+            l_IsPC = 1;
+            return;
+        }
+        else if (l_SizeOfPlayerPed == 0x61E)
+        {
+            l_IsXbox = 1;
+            return;
+        }
+    }
+}

@@ -1,0 +1,898 @@
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// -=- 010 Editor Binary Template =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//
+//    File: gta3_types.bt
+//  Author: Wes Hampson (thehambone)
+// Purpose: Common data structues found in GTA3 saves.
+//
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+// ---- Basic Types ----
+
+enum <byte> Bool
+{
+    FALSE_,
+    TRUE_
+};
+
+enum <uint16> Bool16
+{
+    FALSE__,
+    TRUE__
+};
+
+enum <uint32> Bool32
+{
+    FALSE___,
+    TRUE___
+};
+
+// ---- GTA Types ----
+
+enum <byte> eBombType
+{
+    BOMBTYPE_NONE,
+    BOMBTYPE_TIMER,
+    BOMBTYPE_IGNITION,
+    BOMBTYPE_REMOTE,
+    BOMBTYPE_TIMERARMED,
+    BOMBTYPE_IGNITIONARMED
+};
+
+enum <uint32> eEntityType
+{
+	ENTITY_TYPE_NOTHING,
+	ENTITY_TYPE_BUILDING,
+	ENTITY_TYPE_VEHICLE,
+	ENTITY_TYPE_PED,
+	ENTITY_TYPE_OBJECT,
+	ENTITY_TYPE_DUMMY,
+};
+
+enum <uint32> eEntityStatus
+{
+	STATUS_PLAYER,
+	STATUS_PLAYER_PLAYBACKFROMBUFFER,
+	STATUS_SIMPLE,
+	STATUS_PHYSICS,
+	STATUS_ABANDONED,
+	STATUS_WRECKED,
+	STATUS_TRAIN_MOVING,
+	STATUS_TRAIN_NOT_MOVING,
+	STATUS_HELI,
+	STATUS_PLANE,
+	STATUS_PLAYER_REMOTE,
+	STATUS_PLAYER_DISABLED,
+};
+
+enum eFormation
+{
+	FORMATION_UNDEFINED,
+	FORMATION_REAR,
+	FORMATION_REAR_LEFT,
+	FORMATION_REAR_RIGHT,
+	FORMATION_FRONT_LEFT,
+	FORMATION_FRONT_RIGHT,
+	FORMATION_LEFT,
+	FORMATION_RIGHT,
+	FORMATION_FRONT
+};
+
+enum <byte> eLevelName8
+{
+    LEVEL_NONE,
+    LEVEL_INDUSTRIAL,
+    LEVEL_COMMERCIAL,
+    LEVEL_SUBURBAN
+};
+
+enum <uint16> eLevelName16
+{
+    LEVEL_NONE_,
+    LEVEL_INDUSTRIAL_,
+    LEVEL_COMMERCIAL_,
+    LEVEL_SUBURBAN_
+};
+
+enum <uint32> eLevelName
+{
+    LEVEL_NONE__,
+    LEVEL_INDUSTRIAL__,
+    LEVEL_COMMERCIAL__,
+    LEVEL_SUBURBAN__
+};
+
+enum <uint32> eObjective 
+{
+	OBJECTIVE_NONE,
+	OBJECTIVE_IDLE,
+	OBJECTIVE_FLEE_TILL_SAFE,
+	OBJECTIVE_GUARD_SPOT,
+	OBJECTIVE_GUARD_AREA,	// not implemented
+	OBJECTIVE_WAIT_IN_CAR,
+	OBJECTIVE_WAIT_IN_CAR_THEN_GETOUT,
+	OBJECTIVE_KILL_CHAR_ON_FOOT,
+	OBJECTIVE_KILL_CHAR_ANY_MEANS,
+	OBJECTIVE_FLEE_CHAR_ON_FOOT_TILL_SAFE,
+	OBJECTIVE_FLEE_CHAR_ON_FOOT_ALWAYS,
+	OBJECTIVE_GOTO_CHAR_ON_FOOT,
+	OBJECTIVE_FOLLOW_PED_IN_FORMATION,
+	OBJECTIVE_LEAVE_VEHICLE,
+	OBJECTIVE_ENTER_CAR_AS_PASSENGER,
+	OBJECTIVE_ENTER_CAR_AS_DRIVER,
+	OBJECTIVE_FOLLOW_CAR_IN_CAR, // seems not implemented so far
+	OBJECTIVE_FIRE_AT_OBJ_FROM_VEHICLE,	// not implemented
+	OBJECTIVE_DESTROY_OBJ,	// not implemented
+	OBJECTIVE_DESTROY_CAR,
+	OBJECTIVE_GOTO_AREA_ANY_MEANS,
+	OBJECTIVE_GOTO_AREA_ON_FOOT,
+	OBJECTIVE_RUN_TO_AREA,
+	OBJECTIVE_23,	// not implemented
+	OBJECTIVE_24,	// not implemented
+	OBJECTIVE_FIGHT_CHAR,
+	OBJECTIVE_SET_LEADER,
+	OBJECTIVE_FOLLOW_ROUTE,
+	OBJECTIVE_SOLICIT,
+	OBJECTIVE_HAIL_TAXI,
+	OBJECTIVE_CATCH_TRAIN,
+	OBJECTIVE_BUY_ICE_CREAM,
+	OBJECTIVE_STEAL_ANY_CAR,
+	OBJECTIVE_MUG_CHAR,
+	OBJECTIVE_FLEE_CAR,
+	OBJECTIVE_LEAVE_CAR_AND_DIE
+};
+
+enum <uint32> ePoolType
+{
+    POOL_NONE,
+    POOL_TREADABLE,
+    POOL_BUILDING,
+    POOL_OBJECT,
+    POOL_DUMMY
+};
+
+enum <uint32> eParticleType
+{
+	PARTICLE_SPARK = 0,
+	PARTICLE_SPARK_SMALL,
+	PARTICLE_WHEEL_DIRT,
+	PARTICLE_WHEEL_WATER,
+	PARTICLE_BLOOD,
+	PARTICLE_BLOOD_SMALL,
+	PARTICLE_BLOOD_SPURT,
+	PARTICLE_DEBRIS,
+	PARTICLE_DEBRIS2,
+	PARTICLE_WATER,
+	PARTICLE_FLAME,
+	PARTICLE_FIREBALL,
+	PARTICLE_GUNFLASH,
+	PARTICLE_GUNFLASH_NOANIM,
+	PARTICLE_GUNSMOKE,
+	PARTICLE_GUNSMOKE2,
+	PARTICLE_SMOKE,
+	PARTICLE_SMOKE_SLOWMOTION,
+	PARTICLE_GARAGEPAINT_SPRAY,
+	PARTICLE_SHARD,
+	PARTICLE_SPLASH,
+	PARTICLE_CARFLAME,
+	PARTICLE_STEAM,
+	PARTICLE_STEAM2,
+	PARTICLE_STEAM_NY,
+	PARTICLE_STEAM_NY_SLOWMOTION,
+	PARTICLE_ENGINE_STEAM,
+	PARTICLE_RAINDROP,
+	PARTICLE_RAINDROP_SMALL,
+	PARTICLE_RAIN_SPLASH,
+	PARTICLE_RAIN_SPLASH_BIGGROW,
+	PARTICLE_RAIN_SPLASHUP,
+	PARTICLE_WATERSPRAY,
+	PARTICLE_EXPLOSION_MEDIUM,
+	PARTICLE_EXPLOSION_LARGE,
+	PARTICLE_EXPLOSION_MFAST,
+	PARTICLE_EXPLOSION_LFAST,
+	PARTICLE_CAR_SPLASH,
+	PARTICLE_BOAT_SPLASH,
+	PARTICLE_BOAT_THRUSTJET,
+	PARTICLE_BOAT_WAKE,
+	PARTICLE_WATER_HYDRANT,
+	PARTICLE_WATER_CANNON,
+	PARTICLE_EXTINGUISH_STEAM,
+	PARTICLE_PED_SPLASH,
+	PARTICLE_PEDFOOT_DUST,
+	PARTICLE_HELI_DUST,
+	PARTICLE_HELI_ATTACK,
+	PARTICLE_ENGINE_SMOKE,
+	PARTICLE_ENGINE_SMOKE2,
+	PARTICLE_CARFLAME_SMOKE,
+	PARTICLE_FIREBALL_SMOKE,
+	PARTICLE_PAINT_SMOKE,
+	PARTICLE_TREE_LEAVES,
+	PARTICLE_CARCOLLISION_DUST,
+	PARTICLE_CAR_DEBRIS,
+	PARTICLE_HELI_DEBRIS,
+	PARTICLE_EXHAUST_FUMES,
+	PARTICLE_RUBBER_SMOKE,
+	PARTICLE_BURNINGRUBBER_SMOKE,
+	PARTICLE_BULLETHIT_SMOKE,
+	PARTICLE_GUNSHELL_FIRST,
+	PARTICLE_GUNSHELL,
+	PARTICLE_GUNSHELL_BUMP1,
+	PARTICLE_GUNSHELL_BUMP2,
+	PARTICLE_TEST,
+	PARTICLE_BIRD_FRONT,
+	PARTICLE_RAINDROP_2D
+};
+
+enum <byte> eRadioStation
+{
+    HEAD_RADIO,
+    DOUBLE_CLEF,
+    JAH_RADIO,
+    RISE_FM,
+    LIPS_106,
+    GAME_FM,
+    MSX_FM,
+    FLASHBACK,
+    CHATTERBOX,
+    USERTRACK,
+    POLICE_RADIO,
+    RADIO_OFF
+};
+
+enum <uint16> eModelIndex16
+{
+    LANDSTAL = 90, IDAHO, STINGER, LINERUN, PEREN, SENTINEL, PATRIOT, FIRETRUK,
+    TRASH, STRETCH, MANANA, INFERNUS, BLISTA, PONY, MULE, CHEETAH, AMBULAN, FBICAR,
+    MOONBEAM, ESPERANT, TAXI, KURUMA, BOBCAT, MRWHOOP, BFINJECT, CORPSE, POLICE,
+    ENFORCER, SECURICA, BANSHEE, PREDATOR, BUS, RHINO, BARRACKS, TRAIN, CHOPPER,
+    DODO, COACH, CABBIE, STALLION, RUMPO, RCBANDIT, BELLYUP, MRWONGS, MAFIA, YARDIE,
+    YAKUZA, DIABLOS, COLOMB, HOODS, AIRTRAIN, DEADDODO, SPEEDER, REEFER, PANLANT,
+    FLATBED, YANKEE, ESCAPE, BORGNINE, TOYZ, GHOST
+};
+
+enum <uint32> eModelIndex
+{
+    LANDSTAL__ = 90, IDAHO__, STINGER__, LINERUN__, PEREN__, SENTINEL__, PATRIOT__,
+    FIRETRUK__, TRASH__, STRETCH__, MANANA__, INFERNUS__, BLISTA__, PONY__, MULE__,
+    CHEETAH__, AMBULAN__, FBICAR__, MOONBEAM__, ESPERANT__, TAXI__, KURUMA__, BOBCAT__,
+    MRWHOOP__, BFINJECT__, CORPSE__, POLICE__, ENFORCER__, SECURICA__, BANSHEE__, PREDATOR__,
+    BUS__, RHINO__, BARRACKS__, TRAIN__, CHOPPER__, DODO__, COACH__, CABBIE__, STALLION__,
+    RUMPO__, RCBANDIT__, BELLYUP__, MRWONGS__, MAFIA__, YARDIE__, YAKUZA__, DIABLOS__,
+    COLOMB__, HOODS__, AIRTRAIN__, DEADDODO__, SPEEDER__, REEFER__, PANLANT__, FLATBED__,
+    YANKEE__, ESCAPE__, BORGNINE__, TOYZ__, GHOST__
+};
+
+enum <uint32> ePedType
+{
+	PEDTYPE_PLAYER1,
+	PEDTYPE_PLAYER2,
+	PEDTYPE_PLAYER3,
+	PEDTYPE_PLAYER4,
+	PEDTYPE_CIVMALE,
+	PEDTYPE_CIVFEMALE,
+	PEDTYPE_COP,
+	PEDTYPE_GANG1,
+	PEDTYPE_GANG2,
+	PEDTYPE_GANG3,
+	PEDTYPE_GANG4,
+	PEDTYPE_GANG5,
+	PEDTYPE_GANG6,
+	PEDTYPE_GANG7,
+	PEDTYPE_GANG8,
+	PEDTYPE_GANG9,
+	PEDTYPE_EMERGENCY,
+	PEDTYPE_FIREMAN,
+	PEDTYPE_CRIMINAL,
+	PEDTYPE_UNUSED1,
+	PEDTYPE_PROSTITUTE,
+	PEDTYPE_SPECIAL,
+	PEDTYPE_UNUSED2,
+};
+
+enum <byte> eWeaponType8
+{
+    WEAPONTYPE_UNARMED,
+    WEAPONTYPE_BASEBALLBAT,
+    WEAPONTYPE_COLT45,
+    WEAPONTYPE_UZI,
+    WEAPONTYPE_SHOTGUN,
+    WEAPONTYPE_AK47,
+    WEAPONTYPE_M16,
+    WEAPONTYPE_SNIPERRIFLE,
+    WEAPONTYPE_ROCKETLAUNCHER,
+    WEAPONTYPE_FLAMETHROWER,
+    WEAPONTYPE_MOLOTOV,
+    WEAPONTYPE_GRENADE,
+    WEAPONTYPE_DETONATOR
+};
+
+enum <uint32> eWeaponType
+{
+    WEAPONTYPE_UNARMED__,
+    WEAPONTYPE_BASEBALLBAT__,
+    WEAPONTYPE_COLT45__,
+    WEAPONTYPE_UZI__,
+    WEAPONTYPE_SHOTGUN__,
+    WEAPONTYPE_AK47__,
+    WEAPONTYPE_M16__,
+    WEAPONTYPE_SNIPERRIFLE__,
+    WEAPONTYPE_ROCKETLAUNCHER__,
+    WEAPONTYPE_FLAMETHROWER__,
+    WEAPONTYPE_MOLOTOV__,
+    WEAPONTYPE_GRENADE__,
+    WEAPONTYPE_DETONATOR__
+};
+
+enum <uint32> eWeaponState
+{
+	WEAPONSTATE_READY,
+	WEAPONSTATE_FIRING,
+	WEAPONSTATE_RELOADING,
+	WEAPONSTATE_OUT_OF_AMMO,
+	WEAPONSTATE_MELEE_MADECONTACT
+};
+
+enum <int16> eWeatherType
+{
+    WEATHER_RANDOM = -1,
+    WEATHER_SUNNY,
+    WEATHER_CLOUDY,
+    WEATHER_RAINY,  
+    WEATHER_FOGGY
+};
+
+enum <uint32> eVehicleType
+{
+	VEHICLE_TYPE_CAR,
+	VEHICLE_TYPE_BOAT,
+	VEHICLE_TYPE_TRAIN,
+	VEHICLE_TYPE_HELI,
+	VEHICLE_TYPE_PLANE,
+	VEHICLE_TYPE_BIKE,
+};
+
+typedef struct CVector2D
+{
+    float X, Y;
+};
+
+typedef struct CVector
+{
+    float X, Y, Z;
+};
+
+typedef struct CMatrix
+{
+    // RwMatrix
+    CVector Right;
+    uint32 _flags;
+    CVector Up;
+    uint32 __pad1;
+    CVector At;
+    uint32 __pad2;
+    CVector Position;
+    uint32 __pad3;
+    
+    // Why?
+    if (!l_IsPS2JP) {
+        DWORD pAttachment <comment="RwMatrix*">;
+        Bool        HasRwMatrix;
+        byte        __align0[3];
+    }
+};
+
+typedef struct CCompressedMatrix
+{
+    CVector     Position;
+    // Compress: multiply by 127
+    // Decompress: divide by 127 and re-orthogonalize
+    byte        RightX, RightY, RightZ;
+    byte        UpX, UpY, UpZ;
+    // Original class not aligned, but structure is aligned in saves
+    byte        __align0, __align1;
+};
+
+typedef struct CStoredCollPoly
+{
+    CVector     Verts[3];
+    Bool        Valid;
+    byte        __align[3];
+};
+
+typedef struct CPlaceable
+{
+    // no idea if anything other than the matrix is correct
+
+    if (!l_IsPS2)
+        DWORD _pVtbl;
+
+    CMatrix     Matrix;
+    if (l_IsPS2 && !l_IsPS2JP)
+        DWORD _unknown[6];
+    
+};
+
+typedef struct CEntity
+{
+    CPlaceable  _base;
+
+// 0x4C
+    DWORD pRwObject <comment="RwObject*">;
+
+    // maybe flags
+    if (l_IsIOS) byte _flags[3]; // weird iOS align?
+    if (l_IsAndroid) DWORD _flags;
+
+    eEntityType Type : 3;
+    eEntityStatus Status : 5;
+
+    uint32 UsesCollision : 1;
+    uint32 CollisionProcessed : 1;
+    uint32 IsStatic : 1;
+    uint32 HasContacted : 1;
+    uint32 PedPhysics : 1;
+    uint32 IsStuck : 1;
+    uint32 IsInSafePosition : 1;
+    uint32 UseCollsionRecords : 1;
+
+    uint32 WasPostponed : 1;
+    uint32 ExplosionProof : 1;
+    uint32 IsVisible : 1;
+    uint32 HasCollided : 1;
+    uint32 RenderScorched : 1;
+    uint32 HasBlip : 1;
+    uint32 IsBigBuilding : 1;
+    uint32 RenderDamaged : 1;
+
+    uint32 BulletProof : 1;
+    uint32 FireProof : 1;
+    uint32 CollisionProof : 1;
+    uint32 MeleeProof : 1;
+    uint32 OnlyDamagedByPlayer : 1;
+    uint32 StreamingDontDelete : 1;
+    uint32 ZoneCulled : 1;
+    uint32 ZoneCulled2 : 1;
+
+    uint32 RemoveFromWorld : 1;
+    uint32 HasHitWall : 1;
+    uint32 ImBeingRendered : 1;
+    uint32 TouchingWater : 1;
+    uint32 IsSubway : 1;
+    uint32 DrawLast : 1;
+    uint32 NoBrightHeadLights : 1;
+    uint32 DoNotRender : 1;
+    
+    uint32 DistanceFade : 1;
+    uint32 _flagE2h : 1;
+
+    if (l_IsIOS) FSkip(-2); // eFlags is 5 bytes on iOS, not 8
+    if (l_IsIOS) byte _unknown1[1]; // weird iOS align?
+
+    uint16 ScanCode;
+    int16 RandomSeed;
+    eModelIndex16 ModelIndex;
+    eLevelName16 Level;
+    DWORD pFirstReference <comment="CReference*">;
+    if (l_IsPS2) DWORD _unknown;
+    if (l_IsPS2) DWORD _unknown;
+};
+
+typedef struct CPhysical
+{
+    CEntity _base;
+// 0x64    
+    int32 AudioEntityId;
+    float _unknown;
+    DWORD pTreadable[2] <comment="CTreadable*">;
+    uint32 LastTimeCollided;
+    CVector MoveSpeed;
+    CVector TurnSpeed;
+    CVector MoveFriction;
+    CVector TurnFriction;
+    CVector MoveSpeedAverage;
+    CVector TurnSpeedAverage;
+    float Mass;
+    float TurnMass;
+    float ForceMultiplier;
+    float AirResistance;
+    float Elasticity;
+    float Buoyancy;
+    CVector CenterOfMass;
+    struct CEntryInfoList { DWORD pLastEntry; } EntryInfoList;
+    DWORD pMovingListNode <comment="CPtrNode*">;
+    byte _fieldECh;
+    ubyte NumStaticFrames;
+    ubyte NumCollisionRecords;
+    byte _fieldEFh;
+    DWORD pCollisionRecords[6] <comment="CEntity*">;
+    float DistanceTravelled;
+    float DamageImpulse;
+    DWORD pDamageEntity <comment="CEntity*">;
+    CVector DamageNormal;
+    int16 DamagePieceType;
+
+    byte IsHeavy : 1;
+    byte AffectedByGravity : 1;
+    byte InfiniteMass : 1;
+    byte IsInWater : 1;
+    byte _unusedFlag : 1;
+    byte _unusedFlag : 1;
+    byte HitByTrain : 1;
+    byte _unknownFlag : 1;
+
+    byte SurfaceTouched;
+    eLevelName8 Level;
+    byte __align1[3];
+    if (l_IsPS2) DWORD _unknown;
+    if (l_IsPS2) DWORD _unknown;
+    if (l_IsPS2) DWORD _unknown;
+};
+
+typedef struct CVehicle
+{
+    // Most of this not re-loaded by the game
+    // except Matrix, Entity status and type and flags,
+    // and some fields below (marked)
+
+    CPhysical _base;
+    DWORD pHandling <comment="tHandlingData*">;
+    if (l_IsPS2) DWORD _unknown;
+    struct CAutoPilot
+    {
+        int32 CurrentRouteNode;
+	    int32 NextRouteNode;
+	    int32 PrevRouteNode;
+	    uint32 TimeEnteredCurve;
+	    uint32 TimeToSpendOnCurrentCurve;
+	    uint32 CurrentPathNodeInfo;
+	    uint32 NextPathNodeInfo;
+	    uint32 PreviousPathNodeInfo;
+	    uint32 AntiReverseTimer;
+	    uint32 TimeToStartMission;
+	    byte PreviousDirection;
+	    byte CurrentDirection;
+	    byte NextDirection;
+	    byte CurrentLane;
+	    byte NextLane;
+	    enum <ubyte> eCarDrivingStyle
+        {
+            DRIVINGSTYLE_STOP_FOR_CARS,
+	        DRIVINGSTYLE_SLOW_DOWN_FOR_CARS,
+	        DRIVINGSTYLE_AVOID_CARS,
+	        DRIVINGSTYLE_PLOUGH_THROUGH,
+	        DRIVINGSTYLE_STOP_FOR_CARS_IGNORE_LIGHTS
+        } DrivingStyle;
+	    enum <ubyte> eCarMission
+        {
+            MISSION_NONE,
+	        MISSION_CRUISE,
+	        MISSION_RAMPLAYER_FARAWAY,
+	        MISSION_RAMPLAYER_CLOSE,
+	        MISSION_BLOCKPLAYER_FARAWAY,
+	        MISSION_BLOCKPLAYER_CLOSE,
+	        MISSION_BLOCKPLAYER_HANDBRAKESTOP,
+	        MISSION_WAITFORDELETION,
+	        MISSION_GOTOCOORDS,
+	        MISSION_GOTOCOORDS_STRAIGHT,
+	        MISSION_EMERGENCYVEHICLE_STOP,
+	        MISSION_STOP_FOREVER,
+	        MISSION_GOTOCOORDS_ACCURATE,
+	        MISSION_GOTO_COORDS_STRAIGHT_ACCURATE,
+	        MISSION_GOTOCOORDS_ASTHECROWSWIMS,
+	        MISSION_RAMCAR_FARAWAY,
+	        MISSION_RAMCAR_CLOSE,
+	        MISSION_BLOCKCAR_FARAWAY,
+	        MISSION_BLOCKCAR_CLOSE,
+	        MISSION_BLOCKCAR_HANDBRAKESTOP,
+	        MISSION_HELI_FLYTOCOORS,
+	        MISSION_ATTACKPLAYER,
+	        MISSION_PLANE_FLYTOCOORS,
+	        MISSION_HELI_LAND,
+	        MISSION_SLOWLY_DRIVE_TOWARDS_PLAYER_1,
+	        MISSION_SLOWLY_DRIVE_TOWARDS_PLAYER_2,
+	        MISSION_BLOCKPLAYER_FORWARDANDBACK
+        } CarMission;
+	    enum <ubyte> eCarTempAction
+        {
+            TEMPACT_NONE,
+	        TEMPACT_WAIT,
+	        TEMPACT_REVERSE,
+	        TEMPACT_HANDBRAKETURNLEFT,
+	        TEMPACT_HANDBRAKETURNRIGHT,
+	        TEMPACT_HANDBRAKESTRAIGHT,
+	        TEMPACT_TURNLEFT,
+	        TEMPACT_TURNRIGHT,
+	        TEMPACT_GOFORWARD,
+	        TEMPACT_SWERVELEFT,
+	        TEMPACT_SWERVERIGHT
+        } TempAction;
+	    uint32 TimeTempAction;
+	    float MaxTrafficSpeed;
+	    ubyte CruiseSpeed;
+	    ubyte SlowedDownBecauseOfCars : 1;
+	    ubyte SlowedDownBecauseOfPeds : 1;
+	    ubyte StayInCurrentLevel : 1;
+	    ubyte StayInFastLane : 1;
+	    ubyte IgnorePathfinding : 1;
+        byte __align0[2];
+	    CVector Destination;
+	    DWORD pPathFindNodesInfo[8] <comment="CPathNode*">;
+	    int16 PathFindNodesCount;
+        byte __align1[2];
+	    DWORD pTargetCar <comment="CVehicle*">;
+    } AutoPilot <comment="loaded">;
+    byte Color1 <comment="loaded">;
+    byte Color2 <comment="loaded">;
+    byte Extra1;
+    byte Extra2;
+    int16 AlarmState <comment="loaded">;
+	int16 MissionValue;
+	DWORD pDriver <comment="CPed*">;
+	DWORD pPassengers[8] <comment="CPed*">;
+	ubyte NumPassengers;
+	byte NumGettingIn;
+	byte GettingInFlags;
+	byte GettingOutFlags;
+	byte MaxNumPassengers  <comment="loaded">;
+    byte __align0[3];
+	float _field1D0h[4] <comment="loaded; useless">;
+	DWORD pCurGroundEntity <comment="CEntity*">;
+	DWORD pCarFire <comment="CFire*">;
+	float SteerAngle <comment="loaded; useless">;
+	float GasPedal <comment="loaded; useless">;
+	float BrakePedal <comment="loaded; useless">;
+	enum <byte>
+    {
+	    RANDOM_VEHICLE = 1,
+	    MISSION_VEHICLE = 2,
+	    PARKED_VEHICLE = 3,
+	    PERMANENT_VEHICLE = 4,
+    } VehicleCreatedBy <comment="loaded">;
+
+    ubyte IsLawEnforcer: 1 <comment="loaded">;
+    ubyte IsAmbulanceOnDuty: 1;
+    ubyte IsFireTruckOnDuty: 1;
+    ubyte IsLocked: 1 <comment="loaded; locked by script i.e. can't be deleted">;
+    ubyte EngineOn: 1 <comment="loaded">;
+    ubyte IsHandbrakeOn: 1 <comment="loaded">;
+    ubyte LightsOn: 1 <comment="loaded">;
+    ubyte Freebies: 1 <comment="loaded">;
+
+    ubyte IsVan: 1;
+    ubyte IsBus: 1;
+    ubyte IsBig: 1;
+    ubyte LowVehicle: 1;
+    ubyte ComedyControls : 1;
+    ubyte WarnedPeds : 1;
+    ubyte CraneMessageDone : 1;
+    ubyte ExtendedRange : 1;
+
+    ubyte TakeLessDamage : 1;
+    ubyte IsDamaged : 1;
+    ubyte HasBeenOwnedByPlayer : 1;
+    ubyte FadeOut : 1;
+    ubyte IsBeingCarJacked : 1;
+    ubyte CreateRoadBlockPeds : 1;
+    ubyte CanBeDamaged : 1;
+    ubyte UsingSpecialColModel : 1;
+
+    ubyte OccupantsHaveBeenGenerated : 1; 
+    ubyte GunSwitchedOff : 1; 
+    ubyte VehicleColProcessed : 1;
+    ubyte IsCarParkVehicle : 1;
+    ubyte HasAlreadyBeenRecorded : 1;
+
+    byte NumPedsUseItAsCover;
+    ubyte AmmoInClip;       // boat gun reload
+    byte PacManPickupsCarried;
+    ubyte RoadblockType;
+    byte __align1;
+    int16 RoadblockNode;
+    float Health <comment="loaded; 1000 = full, 250 = fire, 0 = explode">;
+    ubyte CurrentGear <comment="loaded">;
+    byte __align2[3];
+    float ChangeGearTime <comment="loaded">;
+    uint32 GunFiringTime;
+    uint32 TimeOfDeath <comment="loaded">;
+    uint16 TimeBlocked;
+    int16 BombTimer;
+    DWORD pBlowUpEntity <comment="CEntity*">;
+    float MapObjectHeightAhead;
+    float MapObjectHeightBehind;
+    enum <uint32> eCarLock
+    {
+        CARLOCK_NOT_USED,
+        CARLOCK_UNLOCKED,
+        CARLOCK_LOCKED,
+        CARLOCK_LOCKOUT_PLAYER_ONLY,
+        CARLOCK_LOCKED_PLAYER_INSIDE,
+        CARLOCK_LOCKED_INITIALLY,
+        CARLOCK_FORCE_SHUT_DOORS,
+        CARLOCK_SKIP_SHUT_DOORS
+    } DoorLock <comment="loaded">;
+    byte LastWeaponDamage;
+    eRadioStation RadioStation;
+    ubyte RainAudioCounter;
+    ubyte RainSamplesCounter;
+    ubyte CarHornTimer;
+    byte _field22Dh;
+    Bool SirenOrAlarm;
+    byte ComedyControlState;
+    CStoredCollPoly CollPolys[2];
+    float SteerRatio;
+    eVehicleType VehicleType;
+    if (l_IsPS2) DWORD _unknown0[15];
+};
+
+typedef struct CAutomobile
+{
+    // None of this is re-loaded by the game
+    // except Matrix, Entity status amd type,
+    // some CVehicle fields, and Damage
+
+    CVehicle _base;
+    struct CDamageManager
+    {
+        float WheelDamageEffect;
+	    enum <ubyte> eEngineStatus
+        {
+	        ENGINE_STATUS_STEAM1 = 100,
+	        ENGINE_STATUS_STEAM2 = 150,
+	        ENGINE_STATUS_SMOKE = 200,
+	        ENGINE_STATUS_ON_FIRE = 225
+        } EngineStatus;
+	    enum <byte> eWheelStatus
+        {
+	        WHEEL_STATUS_OK,
+	        WHEEL_STATUS_BURST,
+	        WHEEL_STATUS_MISSING
+        } WheelStatus[4];
+	    enum <byte> eDoorStatus
+        {
+	        DOOR_STATUS_OK,
+	        DOOR_STATUS_SMASHED,
+	        DOOR_STATUS_SWINGING,
+	        DOOR_STATUS_MISSING
+        } DoorStatus[6];
+        byte __align;
+	    /*enum <uint32> eLightStatus
+        {
+	        LIGHT_STATUS_OK,
+	        LIGHT_STATUS_BROKEN
+        } LightStatus;*/
+        uint32 LightStatus <format=binary>;
+	    /*enum <uint32> ePanelStatus
+        {
+	        PANEL_STATUS_OK,
+	        PANEL_STATUS_SMASHED1,
+	        PANEL_STATUS_SMASHED2,
+	        PANEL_STATUS_MISSING,
+        } PanelStatus;*/
+        uint32 PanelStatus <format=binary>;
+	    uint32 _field24h;
+    } Damage <comment="loaded by game">;
+	struct CDoor
+    {
+        float MaxAngle;
+	    float MinAngle;
+	    byte Direction;
+	    byte Axis;
+	    enum <byte> eDoorState
+        {
+	        DOOR_SWINGING,
+	        DOOR_OPEN,
+	        DOOR_CLOSED
+        } DoorState;
+        byte __align;
+	    float Angle;
+	    float PrevAngle;
+	    float AngVel;
+	    CVector Speed;
+    } Doors[6];
+	uint32 pCarNodes[20] <comment="RwFrame*">;
+	struct CColPoint
+    {
+        CVector Point;
+	    DWORD __pad1;
+	    CVector Normal;
+	    DWORD __pad2;
+	    ubyte SurfaceA;
+	    ubyte PieceA;
+	    ubyte SurfaceB;
+	    ubyte PieceB;
+	    float Depth;
+    } WheelColPoints[4];
+	float SuspensionSpringRatio[4];
+	float SuspensionSpringRatioPrev[4];
+	float WheelTimer[4];
+	float _field49Ch;
+	Bool WheelSkidmarkMuddy[4];
+	Bool WheelSkidmarkBloody[4];
+	float WheelRotation[4];
+	float WheelPosition[4];
+	float WheelSpeed[4];
+	byte _field4D8h;
+	eBombType BombType : 3;
+	byte TaxiLight : 1;
+	byte HadDriver : 1;
+	byte FixedColour : 1;
+	byte BigWheels : 1;
+	byte WaterTight : 1;
+	byte NotDamagedUpsideDown : 1;
+	byte MoreResistantToDamage : 1;
+    byte __align0;
+	uint32 pBombRigger <comment="CEntity*">;
+	int16 _field4E0h;
+	uint16 HydraulicState;
+	uint32 BusDoorTimerEnd;
+	uint32 BusDoorTimerStart;
+	float SuspensionSpringLength[4];
+	float SuspensionLineLength[4];
+	float HeightAboveRoad;
+	float Traction;
+	float VelocityChangeForAudio;
+	float _RandomValues[6];
+	float FireBlowUpTimer;
+	uint32 pGroundPhysical[4] <comment="CPhysical*">;
+	CVector GroundOffset[4];
+	uint32 pSetOnFireEntity <comment="CEntity*">;
+	float WeaponDoorTimerLeft;
+	float WeaponDoorTimerRight;
+	float CarGunLR;
+	float CarGunUD;
+	float PropellerRotation;
+	DWORD _unknown;
+	byte WheelsOnGround;
+	byte DriveWheelsOnGround;
+	byte DriveWheelsOnGroundPrev;
+    byte __align1;
+	float GasPedalAudio;
+    enum <int32> eWheelState
+    {
+	    WHEEL_STATE_NORMAL,
+	    WHEEL_STATE_SPINNING,
+	    WHEEL_STATE_SKIDDING,
+	    WHEEL_STATE_FIXED,
+    } WheelState[4];
+    if (l_IsPS2) DWORD _unknown0[16];
+};
+
+typedef struct CBoat
+{
+    // None of this is re-loaded by the game
+    // except Matrix, Entity status and type,
+    // and some CVehicle fields
+
+    CVehicle _base;
+    // 0x288 PC, 0x28C Android/iOS
+    float PropellerZ;
+	float PropellerY;
+	CVector WaterMoveDrag;
+	CVector WaterTurnDrag;
+	float MovingHiRotation;
+	int32 _unknown0;
+	uint32 pBoatNodes[4] <comment="RwFrame*">;
+	byte BoatInWater : 1;
+	byte  PropellerInWater : 1;
+	Bool IsAnchored;
+    byte __align0[2];
+	float Orientation;
+	int32 _unknown1;
+	float Damage;
+	uint32 pSetOnFireEntity <comment="CEntity*">;
+	Bool _unknown2;
+    byte __align1[3];
+	float Accelerate;
+	float Brake;
+	float SteeringLeftRight;
+	byte PadID;
+    byte __align2[3];
+	int32 _unknown3;
+	float VolumeUnderWater;
+	CVector BuoyancePoint;
+	float PrevVolumeUnderWater;
+	int16 DeltaVolumeUnderWater;
+	uint16 NumWakePoints;
+	CVector2D WakePoints[32];
+	float WakePointLifeTime[32];
+};

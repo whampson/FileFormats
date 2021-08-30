@@ -1,0 +1,1057 @@
+//--------------------------------------
+//--- 010 Editor v6.0.1 Binary Template
+//
+// Author: Samutz
+// Purpose: translation from http://www.gtamodding.com/wiki/Saves_(GTA_VC)
+// Last edit: 3 June 2015
+//--------------------------------------
+
+LittleEndian();
+
+// Standard coordinate struct
+typedef struct RwV3D {
+  FLOAT X, Y, Z;
+};
+
+// Used 3 times in block 12
+typedef struct Zone {
+	CHAR name[8];
+	RwV3D coordinates_1;
+	RwV3D coordinates_2;
+	DWORD type;
+	DWORD island_number;
+	WORD zone_info_id_night;
+	WORD zone_info_id_day;
+	DWORD _unknown[3];
+};
+
+void align(int n)
+{
+    FSkip(n);
+};
+
+enum <WORD>  DAY     {Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday};
+
+
+// check version by checking offset for "SCR"
+local int is_steam = 0;
+local int is_mobile = 0;
+local int is_ios = 0;
+
+FSkip(0xF0);
+char scr_start_steam[3] <hidden=true>;
+if (scr_start_steam=="SCR") is_steam = 1;
+Printf("Is Steam: %u\n", is_steam);
+FSeek(0);
+
+FSkip(0xE8);
+char scr_start_mobile[3] <hidden=true>;
+if (scr_start_mobile=="SCR") is_mobile = 1;
+Printf("Is Mobile: %u\n",  is_mobile);
+FSeek(0);
+
+if (is_mobile) {
+    local int size = ReadInt(0x00);
+    local int pedPoolSize = ReadInt(size + 8);
+    if (pedPoolSize == 0x756 || pedPoolSize == 0x75A) {
+        is_ios = 1;
+    }
+    Printf("Is iOS: %u\n",  is_ios);
+}
+
+// blocks
+local int i = 0;
+local int total_blocks = 24;
+
+for (i=0; i < total_blocks; i++)
+{
+    switch (i)
+    {
+        // block 0 - script & misc vars
+        case 0:
+            struct Script {
+                DWORD block_size;
+                struct {
+                    if (is_mobile==1) {
+                        DWORD save_version;
+                        wchar_t last_mission_passed[28];
+                    }
+                    else { // pc
+                        wchar_t last_mission_passed[24];
+                        struct SYSTEMTIME {
+                            WORD nYear, nMonth;
+                            DAY  eDayOfWeek;
+                            WORD nDay, nHour, nMinute, nSecond, nMilliseconds;
+                        } systemTime;
+                    }
+                    DWORD _unknown;
+                    DWORD current_island;
+                    RwV3D camera_coordinates;
+                    if (is_steam==1) DWORD _steam_exclusive_unknown;
+                    DWORD minute_length;
+                    DWORD weather_timer;
+                    BYTE game_hour;
+                    align(3);
+                    BYTE game_minute;
+                    align(3);
+                    DWORD pad_number;
+                    DWORD global_timer;
+                    FLOAT game_speed;
+                    DWORD _unknown;
+                    DWORD _unknown;
+                    DWORD _unknown;
+                    FLOAT _unknown;
+                    FLOAT _unknown;
+                    FLOAT _unknown;
+                    WORD _unknown;
+                    align(2);
+                    WORD relates_to_weather;
+                    align(2);
+                    WORD current_weather;
+                    align(2);
+                    DWORD _unknown;
+                    DWORD current_weather_table_offset;
+                    FLOAT current_vehicle_camera_view;
+                    FLOAT current_on_foot_camera_view;
+                    DWORD current_interior;
+                    BYTE taxt_boost_jump;
+                    align(3);
+                    BYTE _unknown;
+                    align(3);
+                    DWORD sky_color;
+                    DWORD sky_atmosphere;
+                    FLOAT sky_atmosphere_blue_overlay;
+                    DWORD _unknown;
+                    DWORD _unknown;
+                    DWORD _unknown;
+                    DWORD _unknown;
+                    DWORD _unknown;
+                    DWORD _unknown;
+                    DWORD _unknown;
+                    DWORD _unknown;
+                    DWORD _unknown;
+                    DWORD _unknown;
+                    DWORD size_of_script_block;
+                    struct Subblock_A {
+                        CHAR SCR[4];
+                        DWORD size_of_script_block;
+                        DWORD size_of_global_variables;
+                        DWORD global_variable[size_of_global_variables/4];
+                    } subblock;
+                    struct Subblock_B {
+                        DWORD size_of_subblock_B;
+                        DWORD _unknown;
+                        DWORD _unknown;
+                        struct {
+                            DWORD always_2;
+                            DWORD building_handle;
+                            DWORD new_building_ide_model;
+                            DWORD old_building_ide_mode;
+                        } swapped_building_model[25];
+                        struct {
+                            DWORD always_2;
+                            DWORD handle;
+                        } object_visibility[20];
+                    } subblock;
+                    BYTE _unknown;
+                    BYTE kaufman_cabs_radio;
+                    WORD _unknown;
+                    DWORD size_of_main;
+                    DWORD size_of_largest_mission;
+                    WORD number_of_missions;
+                    WORD _unknown;
+                    DWORD number_of_running_threads;
+                    struct {
+                        DWORD next_script;
+                        DWORD previous_script;
+                        CHAR name[8];
+                        DWORD current_instruction_pointer;
+                        DWORD return_stack;
+                        DWORD return_stack;
+                        DWORD return_stack;
+                        DWORD return_stack;
+                        DWORD _unknown;
+                        DWORD _unknown;
+                        WORD stack_counter;
+                        WORD _unknown;
+                        DWORD local_variable[16];
+                        DWORD timer_a;
+                        DWORD timer_b;
+                        BYTE is_active;
+                        BYTE if_statement_result;
+                        BYTE uses_mission_cleanup;
+                        BYTE awake_flag;
+                        DWORD thread_wake_up_time;
+                        WORD if_check_result;
+                        BYTE not_flag;
+                        BYTE is_wasted_busted_check_active;
+                        BYTE has_player_been_wasted_busted;
+                        BYTE mission_thread_flag;
+                        BYTE _unknown;
+                        BYTE _unknown;
+                    } thread[number_of_running_threads];
+                } subblock;
+            } block;
+        break;
+		
+		// block 1 - ped pool
+		/*
+			Skipping this one for now because the wiki docs don't match up
+			with my observations or even the health/armor offsets I'm using
+			for GTASnP.com.
+		*/
+		case 1:
+			struct Ped_Pool {
+                local int block_start = FTell();
+
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                    struct {
+                        int num_peds;
+                        struct {
+                            int32 ped_type;
+                            int16 model;
+                            int32 handle;
+                            struct {
+                                // CPed
+                                FSkip(52);
+                                RwV3D pos;
+                                if (is_ios) FSkip(283);
+                                else FSkip(288);
+                                enum <byte> { UNKNOWN, RANDOM, MISSION } created_by;
+                                if (is_ios) FSkip(496);
+                                else FSkip(499);
+                                float health;
+                                float armor;
+                                FSkip(172);
+                                struct {
+                                    struct {
+                                        enum eWeaponType
+                                        {
+	                                        WEAPONTYPE_UNARMED,
+	                                        WEAPONTYPE_BRASSKNUCKLE,
+	                                        WEAPONTYPE_SCREWDRIVER,
+	                                        WEAPONTYPE_GOLFCLUB,
+	                                        WEAPONTYPE_NIGHTSTICK,
+	                                        WEAPONTYPE_KNIFE,
+	                                        WEAPONTYPE_BASEBALLBAT,
+	                                        WEAPONTYPE_HAMMER,
+	                                        WEAPONTYPE_CLEAVER,
+	                                        WEAPONTYPE_MACHETE,
+	                                        WEAPONTYPE_KATANA,
+	                                        WEAPONTYPE_CHAINSAW,
+	                                        WEAPONTYPE_GRENADE,
+	                                        WEAPONTYPE_DETONATOR_GRENADE,
+	                                        WEAPONTYPE_TEARGAS,
+	                                        WEAPONTYPE_MOLOTOV,
+	                                        WEAPONTYPE_ROCKET,
+	                                        WEAPONTYPE_COLT45,
+	                                        WEAPONTYPE_PYTHON,
+	                                        WEAPONTYPE_SHOTGUN,
+	                                        WEAPONTYPE_SPAS12_SHOTGUN,
+	                                        WEAPONTYPE_STUBBY_SHOTGUN,
+	                                        WEAPONTYPE_TEC9,
+	                                        WEAPONTYPE_UZI,
+	                                        WEAPONTYPE_SILENCED_INGRAM,
+	                                        WEAPONTYPE_MP5,
+	                                        WEAPONTYPE_M4,
+	                                        WEAPONTYPE_RUGER,
+	                                        WEAPONTYPE_SNIPERRIFLE,
+	                                        WEAPONTYPE_LASERSCOPE,
+	                                        WEAPONTYPE_ROCKETLAUNCHER,
+	                                        WEAPONTYPE_FLAMETHROWER,
+	                                        WEAPONTYPE_M60,
+	                                        WEAPONTYPE_MINIGUN,
+	                                        WEAPONTYPE_DETONATOR,
+	                                        WEAPONTYPE_HELICANNON,
+	                                        WEAPONTYPE_CAMERA,
+                                        } type;
+                                        enum eWeaponState
+                                        {
+	                                        WEAPONSTATE_READY,
+	                                        WEAPONSTATE_FIRING,
+	                                        WEAPONSTATE_RELOADING,
+	                                        WEAPONSTATE_OUT_OF_AMMO,
+	                                        WEAPONSTATE_MELEE_MADECONTACT
+                                        } state;
+                                        int32 ammo_in_clip;
+                                        int32 ammo_total;
+                                        uint32 timer;
+                                        byte add_rot_offset;
+                                        FSkip(3);
+                                    } weapon[10] <optimize=false>;
+                                } weapons;
+                                FSkip(252);
+                                // CPlayerPed
+                                FSkip(16);
+                                float max_stamina;
+                                FSkip(28);
+                                if (is_mobile)
+                                    int32 targetable_objects[26];
+                                else
+                                    int32 targetable_objects[4];
+                                FSkip(164);
+                            } player_ped;
+                            int32 max_wanted_level;
+                            int32 max_chaos_level;
+                            char model_name[22];
+                            if (is_mobile) int32 unknown;
+                        } peds[num_peds] <optimize=false>;
+                    } ped_pool;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block;
+		break;
+		
+		// block 2 - garages
+		case 2:
+			struct Garages {
+				local int block_start = FTell();
+				
+				DWORD block_size;
+				struct {
+					DWORD block_size;
+					struct {
+						DWORD number_of_garages;
+						DWORD free_bombs;
+						DWORD free_respray;
+						DWORD _unknownA[3];
+						DWORD garage_type_8_status;
+						DWORD garage_type_9_status;
+						DWORD garage_type_10_status;
+						DWORD garage_type_22_status;
+						DWORD _unknownB;
+						struct {
+							DWORD model_id;
+							RwV3D position;
+							RwV3D vector_rotation;
+							DWORD immunities;
+							BYTE primary_color;
+							BYTE secondary_color;
+							BYTE current_radio_station;
+							BYTE variation_1;
+							BYTE variation_2;
+							BYTE bomb_type;
+							align(2);
+						} garage_car[48] <optimize=false>;
+						struct {
+							BYTE type;
+							BYTE door_status;
+							BYTE max_number_of_cars_to_store;
+							BYTE _unknownA[22];
+							BYTE swing_door;
+							BYTE camera_follow_player;
+							BYTE _unknownB;
+							RwV3D entrance_bottom_left;
+							RwV3D quaternion_rotation;
+							FLOAT quaternion_rotation_rw;
+							FLOAT ceiling_z_coordinate;
+							BYTE _unknownC[108];
+						} garage[32];
+					} subblock;
+				} subblock;
+				
+				FSeek(block_start+block_size+4);
+			} block;
+		break;
+		
+		// block 3 - game logic
+        case 3:
+            struct Game_Logic {
+                local int block_start = FTell();
+                
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                    struct {
+						DWORD number_of_taxi_shortcuts;
+						struct {
+							RwV3D coordinates;
+							FLOAT z_angle_rotation;
+						} taxt_shortcuts[16];
+					} subblock;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block;
+        break;
+		
+		// block 4 - vehicle pool
+		/*
+			I can't verify this because in every one of my saves it's 16 bytes long
+			and never seems to contain vehicle structures.
+		*/
+        case 4:
+            struct Vehicle_Pool {
+                local int block_start = FTell();
+                
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                    struct {
+						DWORD number_of_vehicles;
+						struct {
+							DWORD number_of_vehicles;
+							DWORD _unknown;
+							// ????
+						} subblock;
+					} subblock;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block <comment="unverified">;
+        break;
+		
+		// block 5 - object pool
+		case 5:
+            struct Object_Pool {
+                local int block_start = FTell();
+                
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                    struct {
+						DWORD number_of_objects;
+						struct {
+							WORD object_ide_number;
+							DWORD _unknownA;
+							RwV3D coordinates;
+							BYTE _unknownB[70];
+						} object[number_of_objects];
+					} subblock;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block;
+        break;
+		
+		// block 6 - ???
+		// not in wiki
+		case 6: 
+			struct {
+                local int block_start = FTell();
+                
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block <comment="not documented">;
+		break;
+		
+		// block 7 - cranes
+		case 7:
+            struct Cranes {
+                local int block_start = FTell();
+                
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                    struct {
+						DWORD number_of_cranes;
+						DWORD _unknown;
+						struct {
+							BYTE _unknownA[64];
+							FLOAT current_z_rotation;
+							BYTE _unknownB[20];
+							FLOAT center_of_crane_x;
+							FLOAT center_of_crate_y;
+							BYTE _unknownC[28];
+						} crane[number_of_cranes];
+					} subblock;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block;
+        break;
+
+        // block 8 - pick ups
+        case 8:
+            struct Pickups {
+                local int block_start = FTell();
+                
+                DWORD block_size;
+                struct {
+                    DWORD size_of_pickups;
+                    struct {
+                        RwV3D coordinates;
+                        DWORD _unknown;
+                        DWORD _unknown;
+                        DWORD _unknown;
+                        DWORD ammo_or_asset_revenue;
+                        DWORD timer;
+                        DWORD _unknown;
+                        DWORD _unknown;
+                        DWORD _unknown;
+                        BYTE _unknown;
+                        BYTE _unknown;
+                        BYTE type;
+                        BYTE has_been_picked_up;     
+                        DWORD _unknown;       
+                    } pickup[336];
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block;
+        break;
+
+        // block 9 - phone info
+        case 9:
+            struct Phone_Info {
+                local int block_start = FTell();
+                
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                    struct {
+						DWORD _unknown;
+						DWORD number_of_active_phones;
+						struct {
+							RwV3D coordinates;
+							BYTE _unknownA[32];
+							DWORD phone_status;
+							BYTE _unknownB[4];
+						} phone[50];
+                    } subblock;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block;
+        break;
+		
+		// block 10 - restart points buffer
+        case 10:
+            struct Restart_Points_Buffer {
+                local int block_start = FTell();
+                
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                    struct {
+						CHAR RST[4];
+						RwV3D hospital_coordinates;
+						FLOAT hospital_z_angle;
+						BYTE _unknownA[116];
+						RwV3D police_coordinates;
+						FLOAT police_z_angle;
+						BYTE _unknownB[120];
+						RwV3D override_coordinates;
+						FLOAT override_z_angle;
+                    } subblock;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block;
+        break;
+		
+		// block 11 - radar blips buffer
+        case 11:
+            struct Radar_Blips_Buffer {
+                local int block_start = FTell();
+                
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                    struct {
+						CHAR RDR[4];
+						struct {
+							DWORD color;
+							BYTE _unknownA[12];
+							FLOAT coordinate_x;
+							FLOAT coordinate_y;
+							RwV3D coordinates;
+							BYTE _unknownB[2];
+							BYTE brightness;
+							BYTE _unknownC[3];
+							WORD size;
+							WORD show;
+							WORD type;
+						} blip[75];
+                    } subblock;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block;
+        break;
+		
+		// block 12 - zones buffer
+        case 12:
+            struct Zones_Buffer {
+                local int block_start = FTell();
+                
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                    struct {
+						CHAR ZNS[4];
+						DWORD block_size;
+						struct {
+							DWORD _unknownA[2];
+							Zone navigation_zone[20];
+							Zone info_zone[169];
+							struct {
+								BYTE _unknown[68]; // only documented as a struct, but no details of content
+							} ped_car_gang_info_structs[338];
+							WORD _unknownB[2];
+							DWORD _unknownC[2];
+							Zone map_zone[39];
+							struct {
+								BYTE _unknown[2]; // again, content not documented
+							} crime_report_audio[14];
+						} subblock;
+                    } subblock;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block;
+        break;
+		
+		// block 13 - gang data
+        case 13:
+            struct Gang_Data {
+                local int block_start = FTell();
+                
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                    struct {
+						CHAR GNG[4];
+						DWORD size_of_gangs;
+						struct {
+							DWORD car_model;
+							DWORD ped_model_1;
+							DWORD ped_model_2;
+							DWORD _unknown;
+							DWORD weapon_number_1;
+							DWORD weapon_number_2;
+						} gang[size_of_gangs/24];
+                    } subblock;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block;
+        break;
+		
+        // block 14 - car generators
+        case 14:
+            struct Car_Generators {
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                    struct {
+                        CHAR CNG[4];
+                        DWORD block_size;
+                        struct {
+                            DWORD _unknown;
+                            DWORD _unknown;
+                            DWORD _unknown;
+                            DWORD _unknown;
+                            DWORD size_of_cargen_structs;
+                            struct {
+                                int32 model_id;
+                                RwV3D coordinates;
+                                FLOAT z_angle;
+                                int16 color1;
+                                int16 color2;
+                                BYTE force_spawn;
+                                BYTE alarm_chance;
+                                BYTE lock_chance;
+                                BYTE _align;
+                                int16 min_delay;
+                                int16 max_delay;
+                                uint32 timer;
+                                int32 vehicle_handle;
+                                int16 uses_remaining;
+                                BYTE is_blocking;
+                                BYTE _align;
+                            } car_generator[(size_of_cargen_structs/44)];
+                        } subblock;
+                    } subblock;
+                } subblock;
+            } block;
+        break;
+		
+		// block 15 - ???
+		// not on wiki
+		case 15: 
+			struct {
+                local int block_start = FTell();
+                
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block <comment="not documented">;
+		break;
+		
+		// block 16 - audio script objects
+		/*
+			I can't verify this because in every one of my saves it's 20 bytes long
+			and never seems to contain audio structures.
+		*/
+		case 16:
+			struct Audio_Script_Objects {
+                local int block_start = FTell();
+
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                    struct {
+                        CHAR AUD[4];
+                        DWORD block_size;
+						struct {
+							DWORD _unknown_probably_audio_count; // is always 0 with nothing following in the block in my saves
+						} subblock;
+					} subblock;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block <comment="unverified">;
+		break;
+		
+		// block 17 - script paths
+		/*
+			Another one where the wiki doc doesn't match up, so can't verify
+		*/
+		case 17:
+			struct Script_Paths {
+                local int block_start = FTell();
+
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block <comment="incomplete">;
+		break;
+		
+		// block 18 - player info
+		case 18:
+			struct Player_info {
+                local int block_start = FTell();
+
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                    struct {
+						DWORD current_money;
+						BYTE wasted_busted_status;
+						BYTE _unknown[10];
+						DWORD current_displayed_money;
+						DWORD number_of_packages_picked_up;
+						DWORD total_number_of_packages;
+						BYTE infinite_run;
+						BYTE fast_reload;
+						BYTE fireproof;
+						UBYTE max_health;
+						UBYTE max_armor;
+						BYTE free_busted_once;
+						BYTE free_wasted_once;
+						BYTE driveby_enabled;
+					} subblock;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block <comment="incomplete">;
+		break;
+		
+		// block 19 - stats
+		case 19:
+			struct Stats {
+                local int block_start = FTell();
+
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                    struct {
+						DWORD peds_wasted_by_player;
+						DWORD peds_wasted_by_others;
+						DWORD cars_exploded;
+						DWORD boats_exploded;
+						DWORD tires_popped;
+						DWORD bullets_fired;
+						DWORD number_of_peds_killed_per_ped_type[23];
+						DWORD helis_exploded;
+						FLOAT progress_made;
+						FLOAT total_progress;
+						DWORD kg_of_explosives_used;
+						DWORD bullets_hit;
+						DWORD headshots;
+						DWORD total_number_of_wanted_stars_attained;
+						DWORD total_number_of_wanted_stars_evaded;
+						DWORD times_busted;
+						DWORD times_wasted;
+						DWORD days_passed;
+						DWORD save_count;
+						DWORD paynspray_respays;
+						FLOAT max_insane_stunt_jump_distance;
+						FLOAT max_insane_stunt_jump_height;
+						DWORD max_insane_stunt_flips;
+						DWORD max_insane_stunt_rotation;
+						DWORD max_insane_stunt_rating;
+						DWORD unquie_jumps_completed;
+						DWORD unquie_jump_count;
+						DWORD mission_attempts;
+						DWORD passengers_dropped_off;
+						DWORD cash_made_in_taxi_missions;
+						DWORD unused[3];
+						DWORD secondary_trash_type;
+						DWORD secondary_weather_table;
+						FLOAT distance_traveled_by_foot;
+						FLOAT distance_traveled_by_car;
+						FLOAT distance_traveled_by_bike;
+						FLOAT distance_traveled_by_boat;
+						FLOAT distance_traveled_by_golf_cart;
+						FLOAT distance_traveled_by_heli;
+						FLOAT distance_traveled_by_plane;
+						DWORD people_saved_in_ambulance_mission;
+						DWORD criminals_killed_on_vigilante;
+						DWORD fires_extinguished_in_firefighter_mission;
+						DWORD highest_vigilante_level;
+						DWORD highest_ambulance_level;
+						DWORD highest_firefighter_level;
+						DWORD photos_taken;
+						DWORD rampages_passed;
+						DWORD rampage_count;
+						DWORD total_number_of_missions;
+						DWORD flight_time;
+						DWORD times_drowned;
+						DWORD seagulls_sniped;
+						FLOAT weapon_budget;
+						FLOAT fashion_budget;
+						FLOAT visits_from_loan_sharks;
+						FLOAT stores_knocked_off;
+						FLOAT movie_stunts;
+						FLOAT assassination_contracts_completed;
+						FLOAT pizzas_delivered;
+						FLOAT garbage_pickups_made;
+						FLOAT ice_creams_sold;
+						FLOAT top_shooting_range_score;
+						FLOAT shooting_range_rank;
+						DWORD longest_wheelie_time;
+						DWORD longest_stoppie_time;
+						DWORD longest_2wheel_time;
+						DWORD longest_wheelie_distance;
+						DWORD longest_stoppie_distance;
+						DWORD longest_2wheel_distance;
+						DWORD property_budget;
+						DWORD auto_repair_and_painting_budget;
+						DWORD property_destroyed;
+						DWORD number_of_properties_owned;
+						DWORD bloodring_kills;
+						DWORD longest_time_in_bloodring;
+						struct {
+							BYTE the_malibu;
+							BYTE print_works;
+							BYTE film_studio;
+							BYTE ice_cream_factory;
+							BYTE car_showroom;
+							BYTE taxi_company;
+							BYTE boatyard;
+							BYTE pole_position_club;
+							BYTE vice_point;
+							BYTE links_view_apartment;
+							BYTE el_swanko_casa;
+							BYTE washington_street;
+							BYTE ocean_heights_apartment;
+							BYTE skumole_shack;
+							BYTE hyman_condo;
+						} properties_owned;
+						DWORD highest_media_attention;
+						struct {
+							DWORD alloy_wheels_of_steel;
+							DWORD the_driver;
+							DWORD dirt_ring;
+							DWORD rc_plane_race;
+							DWORD rc_car_race;
+							DWORD rc_helicoper_race;
+							DWORD terminal_velocity;
+							DWORD ocean_drive;
+							DWORD border_run;
+							DWORD captial_cruise;
+							DWORD tour;
+							DWORD vc_endurance;
+							DWORD downtown_chopper_checkpoint;
+							DWORD ocean_beach_chopper_checkpoint;
+							DWORD vice_point_chopper_checkpoint;
+							DWORD little_haiti_chopper_checkpoint;
+							DWORD pcj_playground;
+							DWORD trial_by_dirt;
+							DWORD test_track;
+							DWORD cone_crazy;
+							DWORD hotring_race;
+							DWORD hotring_lap;
+							DWORD checkpoint_charlie;
+						} best_times_for_race_vehicle_missions_in_seconds;
+						struct {
+							DWORD highest_score_for_shooter;
+							DWORD best_percentage_of_hits_for_shooter;
+							DWORD number_of_drug_deals_made;
+							DWORD highest_score_with_keepie_uppy_beach_ball; // what? this is a thing??
+							DWORD unsused_record;
+						} minigame_reconds;
+						DWORD hotring_best_result;
+						DWORD peds_killed_recently;
+						DWORD total_peds_killed;
+						CHAR last_passed_missiong_gxt[8];
+						DWORD cheat_rating;
+						struct {
+							FLOAT wildstyle;
+							FLOAT flash_fm;
+							FLOAT kchat;
+							FLOAT fever;
+							FLOAT vrock;
+							FLOAT vcpr;
+							FLOAT espantoso;
+							FLOAT emotion;
+							FLOAT wave;
+							FLOAT mp3_player;
+						} listening_time_per_radio_station_in_miliseconds;
+						
+					} subblock;
+					align(1);
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block <comment="incomplete">;
+		break;
+		
+        // block 20 - set pieces
+        case 20:
+            struct Set_Pieces {
+                local int block_start = FTell();
+
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                    struct {
+                        DWORD number_of_trigger_zones;
+                        struct {
+                            DWORD type;
+                            FLOAT timer;
+                            FLOAT trigger_area_x1;
+                            FLOAT trigger_area_y2;
+                            FLOAT trigger_area_x2;
+                            FLOAT trigger_area_y1;
+                            FLOAT police_a_spawn_x;
+                            FLOAT police_a_spawn_y;
+                            FLOAT police_b_spawn_x;
+                            FLOAT police_b_spawn_y;
+                            FLOAT police_a_heading_x;
+                            FLOAT police_a_heading_y;
+                            FLOAT police_b_heading_x;
+                            FLOAT police_b_heading_y;
+                        } trigger_zone[96];
+                    } subblock;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block;
+        break;
+		
+		// block 21 - streaming
+		case 21:
+			struct Streaming {
+                local int block_start = FTell();
+
+                DWORD block_size;
+                struct {
+                    DWORD total_size_of_steaming_structures;
+                    struct {
+						BYTE _unknown[20];
+					} streaming[15];
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block <comment="very little documentation">;
+		break;
+		
+		// block 22 - pedtype
+		case 22:
+			struct Pedtype {
+                local int block_start = FTell();
+
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+					struct {
+						CHAR PTP[4];
+						DWORD block_size;
+					} subblock;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block <comment="not documented">;
+		break;
+		
+		// block 23
+		/*
+			Leaving this one alone for now because the wiki says its "Planes" but it looks like it repeats block 22
+			followed by padding to the checksum and EOF
+		*/
+		case 23: 
+			struct {
+                local int block_start = FTell();
+                
+                DWORD block_size;
+                struct {
+                    DWORD block_size;
+                } subblock;
+
+                FSeek(block_start+block_size+4);
+            } block <comment="not documented">;
+		break;
+		
+        // remaining undefined blocks
+        default:
+            struct {
+                DWORD block_size;
+                FSkip(block_size);
+            } block;
+    }
+}
+
+// checksum
+DWORD checksum <read=cksum>;
+
+string cksum(int oldSum)
+{
+    local int checksumOffset = 0;
+    local uint32 newSum;
+    local string newSumString;
+
+    checksumOffset = FileSize() - 4;
+
+    newSum = Checksum(CHECKSUM_BYTE, 0, checksumOffset);
+    if (newSum != oldSum)
+    {
+        WriteUInt(checksumOffset, newSum);
+    }
+
+    SPrintf(newSumString, "%d", (uint32) newSum);
+    return newSumString;
+}
+
+int Align4Bytes(int addr)
+{
+    local int l_Aligned = addr;
+    local int l_Remainder = addr % 4;
+    if (l_Remainder > 0)
+    {
+        l_Aligned += (4 - l_Remainder);
+    }
+
+    return l_Aligned;
+}
+
+void Align()
+{
+    local int l_Aligned = Align4Bytes(FTell());
+    FSeek(l_Aligned);
+}
